@@ -146,6 +146,7 @@ class Courtesan(Character):
 
         #Update the UI to show the cards
         if len(args) != 0:
+            print("courtesan condition met")
             game_screen = args[0]
             game_screen.special_activate_UI('courtesan', the_customer_ID)
 

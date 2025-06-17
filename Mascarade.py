@@ -346,7 +346,7 @@ def char_selected(instance, player_ID,role_ID, game_screen ): #The args take the
 
     # Hide all sidebars after finishing choosing
     game_screen.hide_all_sidebars()
-    
+
     #Show the action
     game_screen.widgets_dict[player_ID].show_action(1, role_ID)
 
@@ -642,10 +642,10 @@ class OffGameScreen(Screen):
             self.layout.add_widget(self.court_widget)
             self.widgets_dict['court'] = self.court_widget
 
-            # #For the pause button
-            # self.pause_button = Button(text="Pause", size_hint=(0.05,0.05), pos_hint={'right': 1})
-            # self.pause_button.bind(on_click = self.pause )
-            # self.add_widget(self.pause_button)
+            #For the pause button
+            self.pause_button = Button(text="Pause", size_hint=(0.05,0.05), pos_hint={'right': 1})
+            self.pause_button.bind(on_press = self.pause )
+            self.add_widget(self.pause_button)
 
 
             self.add_widget(self.layout)
@@ -653,9 +653,10 @@ class OffGameScreen(Screen):
 
             print(self.widgets_dict)
 
-    # def pause(self,instance):
-    #     pause_overlay = PauseOverlay()
-    #     self.add_widget(pause_overlay)
+    def pause(self,instance):
+        pause_overlay = PauseOverlay()
+        Clock.unschedule(self.play_turn)
+        self.add_widget(pause_overlay)
 
     def on_enter(self, **kwargs):
         for i in self.widgets_dict:
@@ -713,7 +714,6 @@ class OffGameScreen(Screen):
 
         else:
             self.call_for_decision(curr_turn)
-            ###Update giảm revealed cards mỗi cuối lượt
 
     def block_turn(self,dt, first_ID, role_ID):
         self.block_turn_index += 1
@@ -753,11 +753,17 @@ class OffGameScreen(Screen):
         if len(game.decide_dict["yes"]) == 1:
             first_ID = game.decide_dict["yes"][0]
             first = game.players_dict[first_ID]
-            role_claimed.activate(first, game)
-            print(f">>{role_claimed.name} triggered")
             game.affected_dict["status"] = 1
 
             game.dict_for_history["claimers"].append((first_ID, role_ID))
+
+            if game.chars_dict[role_ID] not in self.app.game.special_activate:
+                game.chars_dict[role_ID].activate(first, self.app.game)
+                print(f">>{role_claimed.name} triggered")
+
+            else:
+                game.chars_dict[role_ID].activate(first, game, self)
+                print(f">>{role_claimed.name} triggered")
             ###This update for the situation everyone agree may cause the bot assume that player is the real role, while we can solve this by just raise the probability to 0.5
         else:
             #If there is more than 1 players claim, add the court to the affected
@@ -773,7 +779,7 @@ class OffGameScreen(Screen):
 
                 #Update revealed
                 game.players_dict[player_ID].revealed = len(self.app.game.players_dict) // 2 + 1  # Always +1 since this turn revealed cards decreased the confidence, the players inside the yes wont be decreased
-                
+
                 if card_ID == role_ID:
                     game.affected_dict["status"] = 1
                     true_IDs.append(player_ID)
@@ -782,7 +788,7 @@ class OffGameScreen(Screen):
                     game.wrong_IDs.append(player_ID)
 
                 game.dict_for_history["claimers"].append((player_ID, card_ID))
-            
+
             #Activate the role on the true player
 
             if len(true_IDs) != 0:
@@ -830,6 +836,7 @@ class OffGameScreen(Screen):
 
     def special_activate_UI(self, mode, *args):
         if mode == "courtesan":
+            print("Updating courtesan...")
             customer_ID = args[0]
 
             # The customers of the Courtesan will reveal to show their gender, also increase the revealed
@@ -1134,26 +1141,27 @@ class GameApp(App):
         Window.fullscreen = 'auto'
 
 
-# class PauseOverlay(FloatLayout):
-#     def __init__(self, **kwargs):
-#         super().__init__(**kwargs)
-#         self.size_hint = (1, 1)
-#         self.pos_hint = {'x': 0, 'y': 0}
-#         self.canvas.before.clear()
-#         with self.canvas.before:
-#             Color(1, 1, 1, 1)  # semi-transparent black
-#             Rectangle(pos=self.pos, size=self.size)
-#
-#         # Pause label
-#         self.add_widget(Label(text="Paused", font_size=40, pos_hint={"center_x": 0.5, "center_y": 0.6}))
-#
-#         # Resume button
-#         resume_btn = Button(text="Resume", size_hint=(0.2, 0.1), pos_hint={"center_x": 0.5, "center_y": 0.4})
-#         resume_btn.bind(on_press=self.resume_game)
-#         self.add_widget(resume_btn)
-#
-#     def resume_game(self, *args):
-#         self.parent.remove_widget(self)
+class PauseOverlay(FloatLayout):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.size_hint = (1, 1)
+        self.pos_hint = {'x': 0, 'y': 0}
+        self.canvas.before.clear()
+        with self.canvas.before:
+            Color(1, 1, 1, 1)  # semi-transparent black
+            Rectangle(pos=self.pos, size=self.size)
+
+        # Pause label
+        self.add_widget(Label(text="Paused", font_size=40, pos_hint={"center_x": 0.5, "center_y": 0.6}))
+
+        # Resume button
+        resume_btn = Button(text="Resume", size_hint=(0.2, 0.1), pos_hint={"center_x": 0.5, "center_y": 0.4})
+        resume_btn.bind(on_press=self.resume_game)
+        self.add_widget(resume_btn)
+
+    def resume_game(self, *args):
+        self.parent.play_turn()
+        self.parent.remove_widget(self)
 
 
 
