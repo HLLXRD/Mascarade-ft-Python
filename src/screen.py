@@ -12,6 +12,10 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.image import Image
 from kivy.uix.behaviors import ButtonBehavior
 
+
+import os
+
+
 from .game_brain import Game
 from .sidebar_widget import ActionSidebar, CharSelectingSidebar, PlayerSelectingSidebar, SwapOrNotSidebar, BlockSelectingSidebar, PlayerWidget, CourtWidget, PauseOverlay
 from .player_and_action import swap, char_selected
@@ -35,7 +39,7 @@ class MenuScreen(Screen):
         button_layout = BoxLayout(orientation='vertical', spacing=15, size_hint=(1, 0.7))
 
         # Start Game button
-        start_btn = Button(text='Start Game', font_size=24, size_hint=(1, 0.2))
+        start_btn = Button(text='Start Game',bold=True, font_size=24, size_hint=(1, 0.2))
         start_btn.bind(on_press=self.start_game)
         button_layout.add_widget(start_btn)
 
@@ -186,8 +190,17 @@ class OffGameScreen(Screen):
 
     def on_pre_enter(self, **kwargs):
         if not self.layout_initialized:
+            self.general_folder = os.path.join(os.path.dirname(__file__), "img_general")
             self.layout = FloatLayout()
 
+            self.background = Image(
+                                    source=os.path.join(self.general_folder,'ingame_background.jpg'),     # <- Replace with your image path
+                                    allow_stretch=True,
+                                    keep_ratio=False,
+                                    size_hint=(1, 1),
+                                    pos_hint={'x': 0, 'y': 0}
+                                )
+            self.layout.add_widget(self.background)
             self.player_num = self.app.player_num
             center_x = 0.5
             center_y = 0.5
@@ -408,7 +421,7 @@ class OffGameScreen(Screen):
         def delayed_check(dt):
             if check_result == 0:
                 return
-            elif check_result == self.app.game.you_ID:  # You won
+            elif 0 in check_result :  # You won
                 self.app.sm.current = "win_scene"
             else:
                 self.app.sm.current = "lose_scene"
