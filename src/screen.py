@@ -218,7 +218,20 @@ class OffGameScreen(Screen):
             self.add_widget(self.layout)
             self.layout_initialized = True
 
-            print(self.widgets_dict)
+    def minimize_window(self, instance):
+        Window.minimize()
+
+    def toggle_maximize(self, instance):
+        if Window.borderless:
+            Window.borderless = False
+            Window.fullscreen = False
+        elif Window.fullscreen:
+            Window.fullscreen = False
+        else:
+            Window.fullscreen = 'auto'
+
+    def close_app(self, instance):
+        App.get_running_app().stop()
 
     def pause(self,instance):
         pause_overlay = PauseOverlay()
@@ -394,9 +407,11 @@ class OffGameScreen(Screen):
         check_result = self.app.game.check("real")
         def delayed_check(dt):
             if check_result == 0:
-                pass
-            else: #Win condition was met
-                self.manager.current = "win_scene"
+                return
+            elif check_result == self.app.game.you_ID:  # You won
+                self.app.sm.current = "win_scene"
+            else:
+                self.app.sm.current = "lose_scene"
         Clock.schedule_once(delayed_check, 2.3)
 
 
@@ -500,3 +515,43 @@ class OffGameScreen(Screen):
             self.layout.remove_widget(self.swap_or_not_sidebar)
             self.swap_or_not_sidebar = None
 
+class WinScene(Screen):
+    def __init__(self, app, **kwargs):
+        super().__init__(**kwargs)
+        self.app = app
+        self.name = "win_scene"
+
+        layout = BoxLayout(orientation='vertical', spacing=20, padding=50)
+
+        self.label = Label(text=" You Win! ", font_size=36, size_hint=(1, 0.3))
+        layout.add_widget(self.label)
+
+        main_menu_btn = Button(text="Return to Main Menu", font_size=24, size_hint=(1, 0.2))
+        main_menu_btn.bind(on_press=self.return_to_menu)
+        layout.add_widget(main_menu_btn)
+
+        self.add_widget(layout)
+
+    def return_to_menu(self, instance):
+        self.app.sm.current = "menu"
+
+
+class LoseScene(Screen):
+    def __init__(self, app, **kwargs):
+        super().__init__(**kwargs)
+        self.app = app
+        self.name = "lose_scene"
+
+        layout = BoxLayout(orientation='vertical', spacing=20, padding=50)
+
+        self.label = Label(text=" You Lose! ", font_size=36, size_hint=(1, 0.3))
+        layout.add_widget(self.label)
+
+        main_menu_btn = Button(text="Return to Main Menu", font_size=24, size_hint=(1, 0.2))
+        main_menu_btn.bind(on_press=self.return_to_menu)
+        layout.add_widget(main_menu_btn)
+
+        self.add_widget(layout)
+
+    def return_to_menu(self, instance):
+        self.app.sm.current = "menu"

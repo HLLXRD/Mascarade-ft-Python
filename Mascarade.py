@@ -4,7 +4,7 @@ from kivy.app import App
 
 import os
 
-from src import MenuScreen, OptionsScreen, OffNameScreen, OffGameScreen
+from src import MenuScreen, OptionsScreen, OffNameScreen, OffGameScreen, WinScene, LoseScene
 #Make the image clickable
 
 
@@ -27,19 +27,23 @@ class GameApp(App):
         self.options_screen = OptionsScreen(self)
         self.off_name_screen = OffNameScreen(self)
         self.off_game_screen = OffGameScreen(self)
+        self.win_screen = WinScene(self)
+        self.lose_screen = LoseScene(self)
 
         # Add screens
         self.sm.add_widget(self.menu_screen)
         self.sm.add_widget(self.options_screen)
         self.sm.add_widget(self.off_name_screen)
         self.sm.add_widget(self.off_game_screen)
+        self.sm.add_widget(self.win_screen)
+        self.sm.add_widget(self.lose_screen)
 
         return self.sm
 
     def on_start(self):
         # Set window to fullscreen
-        Window.fullscreen = 'auto'
-
+        # Window.fullscreen = 'auto'
+        pass
 
 
 

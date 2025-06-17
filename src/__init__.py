@@ -1,2 +1,2 @@
-from .screen import MenuScreen, OptionsScreen, OffNameScreen, OffGameScreen
+from .screen import MenuScreen, OptionsScreen, OffNameScreen, OffGameScreen, LoseScene, WinScene
 
