@@ -54,7 +54,7 @@ from kivy.uix.image import Image
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.properties import BooleanProperty, ListProperty
 from kivy.graphics import Color, Rectangle
-
+from kivy.core.window import Window
 #Make the image clickable
 class ClickableImage(ButtonBehavior, Image):
     pass
@@ -619,6 +619,30 @@ class OffGameScreen(Screen):
 
     def on_pre_enter(self, **kwargs):
         if not self.layout_initialized:
+            # --- Top-right bar for window control ---
+            top_bar = BoxLayout(orientation='horizontal', size_hint=(1, 0.05), pos_hint={'top': 1})
+            top_bar.padding = [0, 0, 10, 0]  # Right padding
+
+            # Spacer to push buttons to right
+            top_bar.add_widget(Label(size_hint=(0.85, 1)))
+
+            # Minimize button
+            min_btn = Button(text='_', font_size=18, size_hint=(0.05, 1))
+            min_btn.bind(on_press=self.minimize_window)
+            top_bar.add_widget(min_btn)
+
+            # Maximize / Restore button
+            max_btn = Button(text='🗖', font_size=18, size_hint=(0.05, 1))
+            max_btn.bind(on_press=self.toggle_maximize)
+            top_bar.add_widget(max_btn)
+
+            # Close button
+            close_btn = Button(text='✕', font_size=18, size_hint=(0.05, 1), background_color=(1, 0, 0, 1))
+            close_btn.bind(on_press=self.close_app)
+            top_bar.add_widget(close_btn)
+
+            # Add to layout
+            self.layout.add_widget(top_bar)
             self.layout = FloatLayout()
 
             self.player_num = self.app.player_num
@@ -652,7 +676,21 @@ class OffGameScreen(Screen):
             self.layout_initialized = True
 
             print(self.widgets_dict)
+    def minimize_window(self, instance):
+        Window.minimize()
 
+    def toggle_maximize(self, instance):
+        if Window.borderless:
+            Window.borderless = False
+            Window.fullscreen = False
+        elif Window.fullscreen:
+            Window.fullscreen = False
+        else:
+            Window.fullscreen = 'auto'
+
+    def close_app(self, instance):
+        App.get_running_app().stop()
+        
     def pause(self,instance):
         pause_overlay = PauseOverlay()
         Clock.unschedule(self.play_turn)
@@ -827,9 +865,11 @@ class OffGameScreen(Screen):
         check_result = self.app.game.check("real")
         def delayed_check(dt):
             if check_result == 0:
-                pass
-            else: #Win condition was met
-                self.manager.current = "win_scene"
+                return
+            elif check_result == self.app.game.you_ID:  # You won
+                self.app.sm.current = "win_scene"
+            else:
+                self.app.sm.current = "lose_scene"
         Clock.schedule_once(delayed_check, 2.3)
 
 
@@ -1106,8 +1146,47 @@ class CourtWidget(BoxLayout):
     def update_money(self):
         new_gold = self.app.game.court
         self.court_money.text = f"{new_gold}g"
+class WinScene(Screen):
+    def __init__(self, app, **kwargs):
+        super().__init__(**kwargs)
+        self.app = app
+        self.name = "win_scene"
+
+        layout = BoxLayout(orientation='vertical', spacing=20, padding=50)
+
+        self.label = Label(text="🎉 You Win! 🎉", font_size=36, size_hint=(1, 0.3))
+        layout.add_widget(self.label)
+
+        main_menu_btn = Button(text="Return to Main Menu", font_size=24, size_hint=(1, 0.2))
+        main_menu_btn.bind(on_press=self.return_to_menu)
+        layout.add_widget(main_menu_btn)
+
+        self.add_widget(layout)
+
+    def return_to_menu(self, instance):
+        self.app.sm.current = "menu"
 
 
+class LoseScene(Screen):
+    def __init__(self, app, **kwargs):
+        super().__init__(**kwargs)
+        self.app = app
+        self.name = "lose_scene"
+
+        layout = BoxLayout(orientation='vertical', spacing=20, padding=50)
+
+        self.label = Label(text="💀 You Lose! 💀", font_size=36, size_hint=(1, 0.3))
+        layout.add_widget(self.label)
+
+        main_menu_btn = Button(text="Return to Main Menu", font_size=24, size_hint=(1, 0.2))
+        main_menu_btn.bind(on_press=self.return_to_menu)
+        layout.add_widget(main_menu_btn)
+
+        self.add_widget(layout)
+
+    def return_to_menu(self, instance):
+        self.app.sm.current = "menu"
+        
 class GameApp(App):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -1118,27 +1197,35 @@ class GameApp(App):
         self.sm = None
         self.off_game_screen = None
     def build(self):
-
-        # Create screen manager
         self.sm = ScreenManager()
 
-        # Create the screens as self attributes
+        # Add both end scenes
+        self.win_scene = WinScene(self)
+        self.lose_scene = LoseScene(self)
+        self.sm.add_widget(self.win_scene)
+        self.sm.add_widget(self.lose_scene)
+
+        # Add other screens
         self.menu_screen = MenuScreen(self)
         self.options_screen = OptionsScreen(self)
         self.off_name_screen = OffNameScreen(self)
         self.off_game_screen = OffGameScreen(self)
 
-        # Add screens
         self.sm.add_widget(self.menu_screen)
         self.sm.add_widget(self.options_screen)
         self.sm.add_widget(self.off_name_screen)
         self.sm.add_widget(self.off_game_screen)
 
+        # Start at menu
+        self.sm.current = 'menu'
+
         return self.sm
+
 
     def on_start(self):
         # Set window to fullscreen
-        Window.fullscreen = 'auto'
+        # Window.fullscreen = 'auto'
+        pass
 
 
 class PauseOverlay(FloatLayout):
