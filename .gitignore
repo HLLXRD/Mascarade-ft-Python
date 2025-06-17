@@ -1,0 +1,13 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Ignore test scripts
+test_*.py
+*_test.py
+test.py
+
+# Optional: VSCode or PyCharm config folders
+.vscode/
+.idea/

@@ -1,0 +1,502 @@
+from kivy.uix.label import Label
+from kivy.uix.slider import Slider
+from kivy.core.window import Window
+from kivy.uix.screenmanager import Screen
+from math import cos, sin, pi
+from kivy.uix.textinput import TextInput
+from kivy.uix.floatlayout import FloatLayout
+from kivy.clock import Clock
+from kivy.app import App
+from kivy.uix.button import Button
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.image import Image
+from kivy.uix.behaviors import ButtonBehavior
+
+from .game_brain import Game
+from .sidebar_widget import ActionSidebar, CharSelectingSidebar, PlayerSelectingSidebar, SwapOrNotSidebar, BlockSelectingSidebar, PlayerWidget, CourtWidget, PauseOverlay
+from .player_and_action import swap, char_selected
+#Make the image clickable
+class ClickableImage(ButtonBehavior, Image):
+    pass
+class MenuScreen(Screen):
+    def __init__(self, app, **kwargs):
+        super().__init__(**kwargs)
+        self.name = 'menu'
+        self.app = app
+
+        # Main layout
+        layout = BoxLayout(orientation='vertical', spacing=20, padding=50)
+
+        # Game title
+        title = Label(text='My Game', font_size=48, size_hint=(1, 0.3))
+        layout.add_widget(title)
+
+        # Buttons layout
+        button_layout = BoxLayout(orientation='vertical', spacing=15, size_hint=(1, 0.7))
+
+        # Start Game button
+        start_btn = Button(text='Start Game', font_size=24, size_hint=(1, 0.2))
+        start_btn.bind(on_press=self.start_game)
+        button_layout.add_widget(start_btn)
+
+        # Options button
+        options_btn = Button(text='Options', font_size=24, size_hint=(1, 0.2))
+        options_btn.bind(on_press=self.go_to_options)
+        button_layout.add_widget(options_btn)
+
+        # Exit button
+        exit_btn = Button(text='Exit', font_size=24, size_hint=(1, 0.2))
+        exit_btn.bind(on_press=self.exit_game)
+        button_layout.add_widget(exit_btn)
+
+        layout.add_widget(button_layout)
+        self.add_widget(layout)
+
+    def start_game(self, instance):
+        print("Starting game...")
+        self.app.game = Game(player_num = self.app.player_num)
+        self.manager.current = 'off_name_typing'
+        # You can switch to game screen here later
+
+
+    def go_to_options(self, instance):
+        self.manager.current = 'options'
+
+    def exit_game(self, instance):
+        App.get_running_app().stop()
+
+
+class OptionsScreen(Screen):
+    def __init__(self, app, **kwargs):
+        super().__init__(**kwargs)
+        self.app = app
+        self.name = 'options'
+        self.player_num = 3  # Default number of players
+
+        # Main layout
+        layout = BoxLayout(orientation='vertical', spacing=20, padding=50)
+
+        # Title
+        title = Label(text='Options', font_size=36, size_hint=(1, 0.2))
+        layout.add_widget(title)
+
+        # Player count section
+        player_layout = BoxLayout(orientation='vertical', spacing=10, size_hint=(1, 0.4))
+
+        # Player count label
+        self.player_label = Label(text=f'Number of Players: {self.player_num}', font_size=24)
+        player_layout.add_widget(self.player_label)
+
+        # Player count slider
+        self.player_slider = Slider(min=3, max=9, step=1, size_hint=(1, 0.3))
+        self.player_slider.bind(value=self.on_player_count_change)
+        player_layout.add_widget(self.player_slider)
+
+        layout.add_widget(player_layout)
+
+        # Buttons layout
+        button_layout = BoxLayout(orientation='horizontal', spacing=20, size_hint=(1, 0.4))
+
+        # Back button
+        back_btn = Button(text='Back to Menu', font_size=20)
+        back_btn.bind(on_press=self.back_to_menu)
+        button_layout.add_widget(back_btn)
+
+        # Apply button
+        apply_btn = Button(text='Apply Settings', font_size=20)
+        apply_btn.bind(on_press=self.apply_settings)
+        button_layout.add_widget(apply_btn)
+
+        layout.add_widget(button_layout)
+        self.add_widget(layout)
+
+    def on_player_count_change(self, instance, value):
+        self.player_num = int(value)
+        self.player_label.text = f'Number of Players: {self.player_num}'
+
+    def apply_settings(self, instance):
+        self.app.player_num = self.player_num
+        print(f"Applied settings: {self.player_num} players")
+        # Here you can save the settings to your game
+
+    def back_to_menu(self, instance):
+        self.manager.current = 'menu'
+
+
+class OffNameScreen(Screen):
+    def __init__(self,app, **kwargs):
+        super().__init__(**kwargs)
+        self.app = app
+        self.name = 'off_name_typing'
+
+        #Get the layout
+        name_layout = BoxLayout(size_hint=(1, 0.7))
+
+        name_input = TextInput(
+            hint_text="Enter your name",
+            multiline=False,
+            size_hint=(0.5, 0.5),
+            pos_hint={'center_x': 0.5, 'center_y': 0.5},
+            background_color=(0, 0, 0, 0),  # Fully transparent
+            foreground_color=(1, 1, 1, 1),  # White text
+            cursor_color=(1, 1, 1, 1),  # White cursor
+            halign="center"
+        )
+        name_input.bind(on_text_validate=self.on_name_entered)
+
+        name_layout.add_widget(name_input)
+        self.add_widget(name_layout)
+
+    def on_name_entered(self, instance):
+        name = [instance.text]
+        self.app.game.take_player_names(name)
+        self.app.game.game_build()
+        self.manager.current = 'off_game'
+
+
+#### Added ActionSidebar class for player decision making
+
+
+
+
+
+
+
+
+class OffGameScreen(Screen):
+    def __init__(self, app, **kwargs):
+        super().__init__(**kwargs)
+        self.app = app
+        self.name = 'off_game'
+        self.layout_initialized = False
+
+        #Start the turn-counting indices
+        self.play_turn_index = 0
+        self.block_turn_index = 0
+
+        #To manage the widget, create a dict to store it correspondingly to the ID
+        self.widgets_dict = {}
+
+        #Initialize the sidebars
+        self.sidebar = None
+        self.player_sidebar = None
+        self.char_sidebar = None
+        self.block_sidebar = None
+        self.swap_or_not_sidebar = None
+
+    def on_pre_enter(self, **kwargs):
+        if not self.layout_initialized:
+            self.layout = FloatLayout()
+
+            self.player_num = self.app.player_num
+            center_x = 0.5
+            center_y = 0.5
+            radius = 0.2
+            ratio = Window.width / Window.height
+
+            for i in range(self.player_num):
+                angle = -pi / 2 + 2 * pi * i / self.player_num
+                x = center_x + radius * cos(angle)
+                y = center_y + radius * sin(angle) * ratio
+
+                player_space = PlayerWidget(self, self.app.game.players_dict[i], ratio,
+                                            pos_hint={'center_x': x, 'center_y': y})
+                self.widgets_dict[i] = player_space
+                self.layout.add_widget(player_space)
+
+            #For the court
+            self.court_widget = CourtWidget(self.app)
+            self.layout.add_widget(self.court_widget)
+            self.widgets_dict['court'] = self.court_widget
+
+            #For the pause button
+            self.pause_button = Button(text="Pause", size_hint=(0.05,0.05), pos_hint={'right': 1})
+            self.pause_button.bind(on_press = self.pause )
+            self.add_widget(self.pause_button)
+
+
+            self.add_widget(self.layout)
+            self.layout_initialized = True
+
+            print(self.widgets_dict)
+
+    def pause(self,instance):
+        pause_overlay = PauseOverlay()
+        Clock.unschedule(self.play_turn)
+        self.add_widget(pause_overlay)
+
+    def on_enter(self, **kwargs):
+        for i in self.widgets_dict:
+            if type(i) == int:
+                self.widgets_dict[i].reveal_card()
+                Clock.schedule_once(self.widgets_dict[i].hide_card, 5)
+        Clock.schedule_once(self.play_turn, 5.5)
+
+    def play_turn(self, dt):
+        ###Since the game.check() only to check after a claim
+        # if not self.app.game.check() == 0: ###Resolve the winning match
+        #     print("Game over")
+        #     return
+
+
+        curr_turn = self.play_turn_index % self.app.player_num
+        print(f"========Start of Player {curr_turn}'s turn========")
+        curr_player = self.app.game.players_dict[curr_turn]
+
+        if curr_player.type == "bot":
+            result = curr_player.decide_play(self)
+            # self.play_turn_index += 1
+            # ###Update giảm revealed cards mỗi cuối lượt
+            # Clock.schedule_once(self.play_turn, 1)
+            if result[0] == 0:
+                agent_ID = result[1]
+                patient_ID = result[2]
+                decision = result[3]
+
+                self.widgets_dict[agent_ID].show_action(0, patient_ID)
+
+                swap(agent_ID, patient_ID, decision, self)
+
+            elif result[0] == 1:
+                player_ID = result[1]
+                role_ID = result[2]
+
+                char_selected("dummy", player_ID, role_ID, self)
+
+            elif result[0] == 2:
+                player_ID = result[1]
+
+                #Show action
+                self.widgets_dict[curr_turn].show_action(2)
+
+                #If peek, update itself probability
+                curr_player.reveal_update([(curr_turn, curr_player.get_card().ID)], "normal")
+
+                #Store to the history
+                self.app.game.history.append({'mode': 22, "player": player_ID})
+
+                #Endturn
+                self.end_turn("dummy")
+
+
+        else:
+            self.call_for_decision(curr_turn)
+
+    def block_turn(self,dt, first_ID, role_ID):
+        self.block_turn_index += 1
+        # print(f"====={self.block_turn_index}=====")
+        if self.block_turn_index == self.app.game.player_num: #Finish resolve
+
+            #Resolve the claim phase, also update all the bots based on the revealed cards
+            self.resolve_claim()
+
+            if not (self.app.game.chars_dict[role_ID] in self.app.game.special_activate and self.app.game.affected_dict["status"] == 1): #If not the situation that the special activate is actually activated
+
+
+                Clock.schedule_once(self.complete_claim, 0)
+
+        else:
+            # self.block_turn_index += 1
+            curr_turn = (self.block_turn_index + first_ID) % self.app.game.player_num
+            print(f"-------Block Turn {curr_turn}-------")
+            curr_player = self.app.game.players_dict[curr_turn]
+
+            if curr_player.type == "bot":
+                curr_player.decide_block(self, first_ID)
+            else:
+                self.call_for_block(first_ID, role_ID)
+
+
+
+    def resolve_claim(self):
+        game = self.app.game
+
+        #Get the role_claimed
+        role_ID = game.affected_dict['role_ID']
+        role_claimed = game.chars_dict[role_ID]
+
+        game.affected_dict['affected'].update(game.decide_dict["yes"])
+
+        if len(game.decide_dict["yes"]) == 1:
+            first_ID = game.decide_dict["yes"][0]
+            first = game.players_dict[first_ID]
+            game.affected_dict["status"] = 1
+
+            game.dict_for_history["claimers"].append((first_ID, role_ID))
+
+            if game.chars_dict[role_ID] not in self.app.game.special_activate:
+                game.chars_dict[role_ID].activate(first, self.app.game)
+                print(f">>{role_claimed.name} triggered")
+
+            else:
+                game.chars_dict[role_ID].activate(first, game, self)
+                print(f">>{role_claimed.name} triggered")
+            ###This update for the situation everyone agree may cause the bot assume that player is the real role, while we can solve this by just raise the probability to 0.5
+        else:
+            #If there is more than 1 players claim, add the court to the affected
+            game.affected_dict["affected"].add("court")
+            true_IDs = [] #For the farmers
+            game.wrong_IDs = []
+            for player_ID in game.decide_dict["yes"]:
+                player = game.players_dict[player_ID]
+                card_ID = player.get_card().ID
+
+                #Reveal the card
+                self.widgets_dict[player_ID].reveal_card()
+
+                #Update revealed
+                game.players_dict[player_ID].revealed = len(self.app.game.players_dict) // 2 + 1  # Always +1 since this turn revealed cards decreased the confidence, the players inside the yes wont be decreased
+
+                if card_ID == role_ID:
+                    game.affected_dict["status"] = 1
+                    true_IDs.append(player_ID)
+            ###Consider remove the "yes" with the "affected" but the problem appears when we update the affected when activate it so then the yes, or the affected will be polluted
+                else:
+                    game.wrong_IDs.append(player_ID)
+
+                game.dict_for_history["claimers"].append((player_ID, card_ID))
+
+            #Activate the role on the true player
+
+            if len(true_IDs) != 0:
+                true_ID = true_IDs[0]
+                true_player = game.players_dict[true_ID]
+
+                if game.chars_dict[role_ID] not in self.app.game.special_activate:
+                    game.chars_dict[role_ID].activate(true_player, self.app.game)
+                    print(f">>{role_claimed.name} triggered")
+
+                else:
+                    game.chars_dict[role_ID].activate(true_player, game, self)
+                    print(f">>{role_claimed.name} triggered")
+
+
+        #Add the dictionary to the history
+        game.history.append(game.dict_for_history)
+
+
+    def penalize(self):
+        game= self.app.game
+        # Penalize the role on the wrong player(s)
+        for i in game.wrong_IDs:
+            player = game.players_dict[i]
+            player.money -= 1
+            game.court += 1
+    def update_UI_and_check(self):
+        # print(f"\n\n\n {self.app.game.court}")
+        for i in self.app.game.affected_dict["affected"]:
+            #Since the widgets_dict has both 'court' (str) and 0,1,2,3,4,5(int), we can just update money for all players
+            self.widgets_dict[i].update_money()
+
+        for i in self.app.game.decide_dict["yes"]:
+            Clock.schedule_once(self.widgets_dict[i].hide_card, 1.5) ###We can just add 0.5 + i * delta_time so that the cards are hid gradually
+
+        check_result = self.app.game.check("real")
+        def delayed_check(dt):
+            if check_result == 0:
+                pass
+            else: #Win condition was met
+                self.manager.current = "win_scene"
+        Clock.schedule_once(delayed_check, 2.3)
+
+
+
+    def special_activate_UI(self, mode, *args):
+        if mode == "courtesan":
+            print("Updating courtesan...")
+            customer_ID = args[0]
+
+            # The customers of the Courtesan will reveal to show their gender, also increase the revealed
+            self.widgets_dict[customer_ID].reveal_card()
+            self.app.game.players_dict[customer_ID].revealed = len(self.app.game.players_dict) // 2 + 1
+
+            #All the bots will update the customer's card into its memory
+            for i in self.app.game.bots_dict:
+                self.app.game.bots_dict[i].reveal_update([(customer_ID, self.app.game.players_dict[customer_ID].get_card().ID)], "normal")
+
+            Clock.schedule_once(self.widgets_dict[customer_ID].hide_card, 2)
+
+            Clock.schedule_once(self.complete_claim, 2.5)
+
+    def complete_claim(self, dt):
+        #Penalize the wrong players after complete
+        self.penalize()
+        # Update the UI, and also check if the win condition has met
+        self.update_UI_and_check()  # This takes approximately 2.5s to fully completed
+
+        # Endturn, reduce the confidence
+        Clock.schedule_once(self.end_turn, 3)
+
+
+    def end_turn(self, dt):
+        print("=======End Turn======")
+        #Remove all the actions
+        for i in self.widgets_dict:
+            if type(i) == int:
+                Clock.schedule_once(self.widgets_dict[i].clear_action, 1)
+        #Update the action
+        self.app.game.update()
+        for i in self.app.game.players_dict:
+            player = self.app.game.players_dict[i]
+            if player.revealed >= 1:
+                player.revealed -= 1
+
+        #Update the revealed
+        for i in self.widgets_dict:
+            if type(i) == int:
+                self.widgets_dict[i].update_revealed()
+
+
+        self.play_turn_index += 1
+        Clock.schedule_once(self.play_turn, 2)
+
+    def call_for_decision(self, player_ID):
+        if self.sidebar is None:
+            self.sidebar = ActionSidebar(self, player_ID)
+        if self.sidebar.parent is None:
+            self.layout.add_widget(self.sidebar)
+    def call_for_choose_char(self):
+        if self.char_sidebar is None:
+            self.char_sidebar = CharSelectingSidebar(self, "Who are you?", "claim")
+        if self.char_sidebar.parent is None:
+            self.layout.add_widget(self.char_sidebar)
+    def call_for_block(self, first_ID, role_ID):
+        if self.block_sidebar is None:
+            self.block_sidebar = BlockSelectingSidebar(self, first_ID, role_ID)
+        if self.block_sidebar.parent is None:
+            self.layout.add_widget(self.block_sidebar)
+    def call_for_choose_player(self, mode):
+        if self.player_sidebar is None:
+            self.player_sidebar = PlayerSelectingSidebar(self, mode)
+        if self.player_sidebar.parent is None:
+            self.layout.add_widget(self.player_sidebar)
+
+    def call_for_swap_or_not(self, agent_ID, patient_ID):
+        if self.swap_or_not_sidebar is None:
+            self.swap_or_not_sidebar = SwapOrNotSidebar(self, agent_ID, patient_ID)
+        if self.swap_or_not_sidebar.parent is None:
+            self.layout.add_widget(self.swap_or_not_sidebar)
+
+    def hide_all_sidebars(self):
+        # Hide action selection sidebar
+        if self.sidebar and self.sidebar.parent:
+            self.layout.remove_widget(self.sidebar)
+            self.sidebar = None
+
+        # Hide character selection sidebar
+        if self.char_sidebar and self.char_sidebar.parent:
+            self.layout.remove_widget(self.char_sidebar)
+            self.char_sidebar = None
+        # Hide block selection sidebar
+        if self.block_sidebar and self.block_sidebar.parent:
+            self.layout.remove_widget(self.block_sidebar)
+            self.block_sidebar = None
+        # Hide player selection sidebar
+        if self.player_sidebar and self.player_sidebar.parent:
+            self.layout.remove_widget(self.player_sidebar)
+            self.player_sidebar = None
+        # Hide swap selection sidebar
+        if self.swap_or_not_sidebar and self.swap_or_not_sidebar.parent:
+            self.layout.remove_widget(self.swap_or_not_sidebar)
+            self.swap_or_not_sidebar = None
+

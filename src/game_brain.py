@@ -1,11 +1,13 @@
 import random
 import numpy as np
-from char import Character, Judge, King, Queen, Thief, Bishop, Widow, Courtesan, Cheat
-from player_and_action import Player, Bot
 import math
+import copy
+
+from .char import Character, Judge, King, Queen, Thief, Bishop, Widow, Courtesan, Cheat
+from .player_and_action import Player, Bot
+
 #__all__ = ['Character', 'Judge', 'Player', 'Game', 'King', 'Queen', 'Thief', 'Judge']
 
-import copy
 
 
 

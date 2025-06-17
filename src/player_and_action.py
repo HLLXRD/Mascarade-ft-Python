@@ -1,8 +1,9 @@
-from char import Character, Judge, King, Queen, Thief, Bishop, Widow, Courtesan, Cheat
-from math_algorithm import sinkhorn_normalize, random_threshold, closest_turn_ID
 import numpy as np
 import copy
 import random
+
+from .char import Character, Judge, King, Queen, Thief, Bishop, Widow, Courtesan, Cheat
+from .math_algorithm import sinkhorn_normalize, random_threshold
 
 
 
@@ -20,27 +21,6 @@ class Player:
     def set_card(self, new_card):
         self.__card = new_card
         return
-    # def action(self, game, action_choose, *args):
-    #     if action_choose.lower() == "swap":
-    #         victim_id = input("Who will be the victim of this? ")
-    #         try:
-    #             victim_id = int(victim_id)
-    #         except:
-    #             for i in game.players_dict:
-    #                 if victim_id.lower() == game.players_dict[i].player_name.lower():
-    #                     victim_id = game.players_dict[i].ID
-    #         finally:
-    #             swap(self, game.players_dict[victim_id])
-    #     elif action_choose.lower() == "claim":
-    #         role_ID = args[0]
-    #         combat(game,self.ID,role_ID)
-    #         game.check()
-    #
-    #     elif action_choose.lower() == "peek at card":
-    #         print("You are", self.get_card())
-    #
-    #     #Update the action
-    #     game.update()
 
 class Bot(Player):
     def __init__(self, ID, bot_name, card: Character, start_money, confidence, revealed):
@@ -228,23 +208,25 @@ class Bot(Player):
             # 2. If it is not necessary to block the next player, continue to claim
             # 2.1 Basic claim
             # Firstly, get the args max of the high_impacts in the probability
-            high_impacts_max_prob = np.max(self.memory_card_array[self.ID, high_impacts_self_IDs])
-            #high_impacts_ID = np.argmax(self.memory_card_array[self.ID, high_impacts_self_IDs]) #if we just do this, it will return the index after slicing, not the original one
-            high_impacts_ID = high_impacts_self_IDs[np.argmax(self.memory_card_array[self.ID, high_impacts_self_IDs])]
+            if len(high_impacts_self_IDs) >= 1:
+                high_impacts_max_prob = np.max(self.memory_card_array[self.ID, high_impacts_self_IDs])
+                #high_impacts_ID = np.argmax(self.memory_card_array[self.ID, high_impacts_self_IDs]) #if we just do this, it will return the index after slicing, not the original one
+                high_impacts_ID = high_impacts_self_IDs[np.argmax(self.memory_card_array[self.ID, high_impacts_self_IDs])]
+                # If the max high_impacts probability is high (over 0.35), it will claim it
+                if high_impacts_max_prob > random_threshold(0.2):
+                    result = (1, self.ID, high_impacts_ID)
 
             #Secondly, get the overall max prob, make sure that it wont try to claim useless roles
-            all_max_prob = np.max(self.memory_card_array[self.ID, useful_self_IDs])
-            all_max_ID = useful_self_IDs[np.argmax(self.memory_card_array[self.ID, useful_self_IDs])] #Fix the shifted ID
+            if len(useful_self_IDs) >= 1 and result == None:
+                all_max_prob = np.max(self.memory_card_array[self.ID, useful_self_IDs])
+                all_max_ID = useful_self_IDs[np.argmax(self.memory_card_array[self.ID, useful_self_IDs])] #Fix the shifted ID
 
-            #If the max high_impacts probability is high (over 0.35), it will claim it
-            if high_impacts_max_prob > random_threshold(0.2):
-                result =  (1, self.ID, high_impacts_ID)
-            #If the max all probability is high enough (over 0.5), claim it
-            elif all_max_prob >= random_threshold(0.35):
-                result = (1, self.ID, all_max_ID)
+                #If the max all probability is high enough (over 0.5), claim it
+                if all_max_prob >= random_threshold(0.35):
+                    result = (1, self.ID, all_max_ID)
 
             # 2.2 Complex claim, after the basic claim fails to determine the suitable action, it starts to find the other player with the least confident but with good cards, swap it
-            if result == None:
+            if result == None and len(high_impacts_self_IDs) >= 1:
                 min_confidence = 1
                 min_ID = 0
                 for i in game.players_dict:
@@ -300,7 +282,7 @@ class Bot(Player):
                     high_confidence.append(i)
 
             # The player inside the confidence 1 with the highest probability to hold the card inside the column of high impacts will be swapped
-            if len(high_confidence) >= 1:
+            if len(high_confidence) >= 1 and len(high_impacts_self_IDs) >= 1:
                 max_prob = 0
                 max_prob_player_ID = None
                 for i in high_confidence:
@@ -414,68 +396,56 @@ class Bot(Player):
             widget.show_action(3, "yes", first_ID, role_ID)
             # print(f"{self.ID} trigger yes")
 
+def char_selected(instance, player_ID, role_ID, game_screen):  # The args take the sidebar boxlayout
+    print(f"Player chose: {game_screen.app.game.chars_dict[role_ID].name}")
+
+    # Hide all sidebars after finishing choosing
+    game_screen.hide_all_sidebars()
+
+    # Show the action
+    game_screen.widgets_dict[player_ID].show_action(1, role_ID)
+
+    ###Maybe we should put those dicts inside another action
+    # Start the block_turn
+    game_screen.block_turn_index = 0
+
+    # The dict to update the history of the game
+    game_screen.app.game.dict_for_history = {'mode': 1, 'role': role_ID, "claimers": []}
+
+    # The dict to update the UI, also to check the money of players
+    game_screen.app.game.affected_dict = {'role_ID': role_ID, 'status': 0, 'affected': {player_ID}}
+
+    # The dict to resolve this claim phase, and to support the UI update
+    game_screen.app.game.decide_dict = {"yes": [player_ID], "no": []}
+
+    # Make sure that the wrong_IDs is fully cleaned
+    game_screen.app.game.wrong_IDs = []
+
+    # Take the win condition of the first_player
+    game_screen.app.game.result_test_win_condition = game_screen.app.game.test_win_condition(player_ID, role_ID)
+
+    print(f"++++++Start Block Turn of Player {player_ID}+++++++")
+    game_screen.block_turn(0, player_ID, role_ID)
 
 
+def swap(agent_ID, patient_ID, decision, game_screen):
+    if decision == "no":
+        pass
+    elif decision == "yes":
+        agent = game_screen.app.game.players_dict[agent_ID]
+        patient = game_screen.app.game.players_dict[patient_ID]
+        agent_card = agent.get_card()
+        patient_card = patient.get_card()
+        agent.set_card(patient_card)
+        patient.set_card(agent_card)
 
-        #Add to all the card class a separate activate function to test whether the affected player can win with the effect of the card
-        #return "yes" or "no"
+    #Records to a dict to save to history
+    dict_for_history = {"mode":0, "agent":agent_ID, "patient":patient_ID}
+    game_screen.app.game.history.append(dict_for_history)
+
+    game_screen.end_turn("dummy")
 
 
-# def swap(agent, patient):
-#     decide = input("Would you actually want to swap?")
-#     if decide.lower() == "yes":
-#         agent_card = agent.get_card()
-#         patient_card = patient.get_card()
-#         agent.set_card(patient_card)
-#         patient.set_card(agent_card)
-#         return
-#     elif decide.lower() == "no":
-#         return
-# def combat(game, first_ID, role_ID):
-#     dict_for_history = {'mode': 1, 'role': role_ID, "claimers": []}
-#     #Take the role and the first player claiming's ID
-#     role_claimed = game.chars_dict[role_ID]
-#     first = game.players_dict[first_ID]
-#     game.affected_dict = {'role_ID': role_ID, 'status':0, 'affected': {first_ID}} #This is to update the UI later
-#
-#     #Add the claimed role ID and the activate
-#     #Take the role's name
-#     game.decide_dict = {"yes": [first_ID], "no": []} #This is to save to the history when it has all done
-#     for i in game.players_dict:
-#         if i == first_ID:
-#             continue
-#         else:
-#             if game.players_dict[i].type == "human":
-#                 pass ### Fix for player
-#             elif game.players_dict[i].type == "bot":
-#                 decision = game.players_dict[i].block_decide(game.affected, game.decide_dict) #Return "yes" or "no"
-#
-#                 #Append the bot to the corresponding decision list
-#                 game.decide_dict[decision].append(game.players_dict[i])
-#                 #We won't use the "no" later, so we can remove it inside the decide_dict, but "no" can be added as the supportive information for the bot later, for example, if the most likely player to own that card say no, maybe it can try another way to decide
-#
-#     #Update all the player inside the "yes" into the affected
-#     game.affected_dict['affected'].update(game.decide_dict["yes"])
-#
-#     if len(game.decide_dict["yes"]) == 1:
-#         role_claimed.activate(first)
-#         game.affected_dict["status"] = 1
-#
-#         game.dict_for_history["claimers"].append((first_ID, role_ID))
-#     else:
-#         for i in game.decide_dict["yes"]:
-#             if i.get_card().ID == role_ID:
-#                 role_claimed.activate(i, game)
-#                 game.affected_dict["status"] = 1
-#                 game.decide_dict["yes"].remove(i)
-#
-#                 game.dict_for_history["claimers"].append((i.ID, role_ID))
-#         ###Consider remove the "yes" with the "affected" but the problem appears when we update the affected when activate it so then the yes, or the affected will be polluted
-#         for i in game.decide_dict["yes"]:
-#             i.money =- 1
-#             #Show the card
-#             print(f"{i.player_name} is the {i.get_card().name}, not the {role_claimed.name}")
-#             game.court += 1
 
 
 

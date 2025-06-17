@@ -61,6 +61,7 @@ def closest_turn_ID(list_IDs, ID_search):
     else:
         return ans
 
-list = [0,4,5,6]
-a = closest_turn_ID(list, 3)
-print(a)
+if __name__ == '__main__':
+    list = [0,4,5,6]
+    a = closest_turn_ID(list, 3)
+    print(a)
