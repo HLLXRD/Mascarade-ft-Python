@@ -194,7 +194,7 @@ class OffGameScreen(Screen):
             self.layout = FloatLayout()
 
             self.background = Image(
-                                    source=os.path.join(self.general_folder,'ingame_background.jpg'),     # <- Replace with your image path
+                                    source=os.path.join(self.general_folder,'ingame_background_cropped.jpg'),     # <- Replace with your image path
                                     allow_stretch=True,
                                     keep_ratio=False,
                                     size_hint=(1, 1),

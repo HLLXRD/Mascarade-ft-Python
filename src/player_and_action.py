@@ -29,6 +29,7 @@ class Bot(Player):
         self.type = "bot"
 
     def swap_update(self, agent_ID, patient_ID):
+
         if agent_ID == self.ID and self.decision_swap == "no":
             pass
         elif agent_ID == self.ID and self.decision_swap == "yes":

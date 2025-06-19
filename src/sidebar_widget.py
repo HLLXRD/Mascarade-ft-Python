@@ -376,7 +376,25 @@ class BlockSelectingSidebar(BoxLayout):
 
 class PlayerWidget(BoxLayout):
     def __init__(self, game_screen,player,ratio, **kwargs):
-        super().__init__(orientation='vertical', size_hint=(0.15,0.20), **kwargs)
+        super().__init__(orientation='vertical', size_hint=(0.12,0.18), **kwargs)
+
+        self.general_folder = os.path.join(os.path.dirname(__file__), "img_general")
+
+        #A float layout is to make sure that the background is behind the content
+        self.layout = FloatLayout()
+
+        self.background = Image(
+            source=os.path.join(self.general_folder, 'Presentation1_copy.png'),
+            # <- Replace with your image path
+            allow_stretch=True,
+            keep_ratio=False,
+            size_hint=(1, 1),
+            pos_hint={'x': 0, 'y': 0}
+        )
+        self.layout.add_widget(self.background)
+
+        #Create a main box layout to manage the information inside it
+        self.main_layout = BoxLayout(orientation='vertical', size_hint=(1,1), pos_hint={'x': 0, 'y': 0}, padding=10)
 
         #Attributize the game_screen and the chars_dict (which can be used in the call later)
         self.game_screen = game_screen
@@ -397,7 +415,7 @@ class PlayerWidget(BoxLayout):
         #self.action = os.path.join(self.img_action_folder,"mask.png")
         ### Just for example
 
-        self.card_image = Image(source=self.card, size_hint=(0.4, 1))
+        self.card_image = Image(source=self.card, size_hint=(0.5, 1), allow_stretch=True,keep_ratio=False)
         #self.action_image = Image(source=self.action, size_hint = (1,1))
 
 
@@ -412,13 +430,15 @@ class PlayerWidget(BoxLayout):
             text = str(player.ID),
             size_hint=(1, 0.1),
             halign='center',
-            valign='top'
+            valign='top',
+            color = [0, 0, 0, 1]
         )
         self.label_name = Label(
             text=player.player_name,
             size_hint=(1, 0.3),
             halign='center',
-            valign='top'
+            valign='top',
+            color = [0, 0, 0, 1]
         )
         # Enable text wrapping
         self.label_name.bind(size=self.label_name.setter('text_size'))
@@ -426,11 +446,11 @@ class PlayerWidget(BoxLayout):
         self.layout_right.add_widget(self.label_name)
 
         #This is for the revealed
-        self.label_revealed = Label(text=f"{player.revealed} turn(s)", size_hint=(1, 0.1),
+        self.label_revealed = Label(text=f"{player.revealed} turn(s)", size_hint=(1, 0.1), color = [0, 0, 0, 1],
                                  pos_hint={'center_x': 0.5, 'center_y': 0.2})
         self.layout_right.add_widget(self.label_revealed)
         #This is for the money
-        self.label_money = Label(text=f"{player.money}g", size_hint=(1, 0.1), pos_hint = {'center_x': 0.5, 'center_y': 0.1})
+        self.label_money = Label(text=f"{player.money}g", size_hint=(1, 0.1),color = [0, 0, 0, 1], pos_hint = {'center_x': 0.5, 'center_y': 0.1})
         self.layout_right.add_widget(self.label_money)
 
 
@@ -438,8 +458,15 @@ class PlayerWidget(BoxLayout):
         self.information_layout.add_widget(self.layout_right)
 
         #Add the information and the action widget to the player widget
-        self.add_widget(self.action_layout)
-        self.add_widget(self.information_layout)
+        self.main_layout.add_widget(self.action_layout)
+        self.main_layout.add_widget(self.information_layout)
+
+        #Add the main contain into the float layout
+        self.layout.add_widget(self.main_layout)
+
+        #Add all the float layout to the biggest widget
+        self.add_widget(self.layout)
+
 
 
     def reveal_card(self):
