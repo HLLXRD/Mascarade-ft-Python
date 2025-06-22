@@ -766,9 +766,10 @@ class CourtWidget(BoxLayout):
     def __init__(self, app, **kwargs):
         super().__init__(orientation='vertical', spacing=0, size_hint=(1, 0.1), pos_hint={"center_x":0.5, "center_y":0.5})
         self.app = app
+        self.font_folder = os.path.join(os.path.dirname(__file__),"fonts")
 
-        self.court_name = Label(text="Court", font_size=24, size_hint=(1, 0.3))
-        self.court_money = Label(text = f"{self.app.game.court}g", font_size=24, size_hint=(1, 0.3))
+        self.court_name = Label(text="Court", font_size=35, size_hint=(1, 0.3), font_name = os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"), color = (0,0,0,1))
+        self.court_money = Label(text = f"{self.app.game.court}g", font_size=60, size_hint=(1, 0.3), font_name = os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"), color = (0,0,0,1))
 
         self.add_widget(self.court_name)
         self.add_widget(self.court_money)

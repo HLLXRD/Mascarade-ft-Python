@@ -201,6 +201,8 @@ class OffGameScreen(Screen):
                                     pos_hint={'x': 0, 'y': 0}
                                 )
             self.layout.add_widget(self.background)
+
+
             self.player_num = self.app.player_num
             center_x = 0.5
             center_y = 0.5
@@ -234,9 +236,20 @@ class OffGameScreen(Screen):
 
                 # player_space.init_action()
             #For the court
+            self.court_background = Image(
+                source=os.path.join(self.general_folder, 'court.png'),  # <- Replace with your image path
+                allow_stretch=True,
+                keep_ratio=True,
+                size_hint=(0.3, 0.3),
+                pos_hint={'center_x': 0.5, 'center_y': 0.5}
+            )
+            self.layout.add_widget(self.court_background)
+
             self.court_widget = CourtWidget(self.app)
             self.layout.add_widget(self.court_widget)
             self.widgets_dict['court'] = self.court_widget
+
+
 
             #Init the hands on the widget
             for i in self.widgets_dict:
@@ -375,8 +388,10 @@ class OffGameScreen(Screen):
             first = game.players_dict[first_ID]
             first_widget = self.widgets_dict[first_ID]
 
-            first_widget.parent.remove_widget(first_widget.bubble_chat) # Remove the bubble chat
-            first_widget.bubble_chat = None
+            for player_ID in game.players_dict:
+                widget = self.widgets_dict[player_ID]
+                widget.parent.remove_widget(widget.bubble_chat)
+                widget.bubble_chat = None
 
             #If there is only one, make the glove with the mask fade, and replace the transparent card with the cardback
             Clock.schedule_once(first_widget.hide_card, 0)
