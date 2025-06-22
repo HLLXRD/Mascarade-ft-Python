@@ -134,50 +134,13 @@ class GameApp(App):
 
         self.prev_maximized = is_now_maximized
 
-    # # Alternative: Track size changes more precisely
-    # def check_window_resize_precise(self, dt):
-    #     current_size = (Window.width, Window.height)
-    #
-    #     # Store the size when we detect a "large" window
-    #     if not hasattr(self, 'last_size'):
-    #         self.last_size = current_size
-    #         self.prev_maximized = False
-    #         return
-    #
-    #     # Detect significant size changes
-    #     width_change = abs(current_size[0] - self.last_size[0])
-    #     height_change = abs(current_size[1] - self.last_size[1])
-    #
-    #     # Large size = maximized, small size = restored
-    #     is_now_maximized = current_size[0] > 1400 or current_size[1] > 800
-    #
-    #     # Only act on significant changes to avoid noise
-    #     if width_change > 100 or height_change > 100:
-    #         print(f"Size changed: {self.last_size} → {current_size}, Maximized: {is_now_maximized}")
-    #
-    #         if self.prev_maximized and not is_now_maximized:
-    #             print("Detected restore down 🗗 — resizing to custom size")
-    #             Window.size = self.custom_restore_size
-    #
-    #             # Center the window manually
-    #             try:
-    #                 screen_width, screen_height = Window.system_size
-    #                 if screen_width < 1024 or screen_height < 768:
-    #                     screen_width, screen_height = 1920, 1080  # fallback
-    #             except:
-    #                 screen_width, screen_height = 1920, 1080  # fallback
-    #
-    #             # Calculate center position
-    #             window_width, window_height = self.custom_restore_size
-    #             center_x = (screen_width - window_width) // 2
-    #             center_y = (screen_height - window_height) // 2
-    #
-    #             # Set window position
-    #             Window.left = center_x
-    #             Window.top = center_y
-    #
-    #         self.last_size = current_size
-    #         self.prev_maximized = is_now_maximized
+    ### Fix the position of the widgets inside the circle
+    ### Add the card name when revealed
+    ### Add return button, pause button
+    ### Add rulebook
+    ### Limit name, fix information
+    ### Add empty widget to the layout
+    ### Scale the starting time with the number of players
 
 
 

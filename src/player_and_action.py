@@ -1,3 +1,6 @@
+from kivy.clock import Clock
+
+
 import numpy as np
 import copy
 import random
@@ -49,6 +52,11 @@ class Bot(Player):
 
 
     def reveal_update(self, list_tuple_cases, mode):
+        '''
+        The mode currently contains two mode:
+        - If the mode is combat (the card revealed in a combat), the bot will look that whether list_tuple_case only contains 1 person, it will consider that player possibly bluff, and apply a different metrics to update the probability
+        - If the mode is normal (for the peek action, or the cards: Courtesan, the Inquisitor or the Usurper) it will update as normal for all numbers of players, not consider the 1 case
+        '''
         size_array = np.size(self.memory_card_array, 0)
         if len(list_tuple_cases) == 1 and mode == "combat":
             for player_ID, role_ID in list_tuple_cases:
@@ -429,7 +437,7 @@ def char_selected(instance, player_ID, role_ID, game_screen):  # The args take t
     game_screen.block_turn(0, player_ID, role_ID)
 
 
-def swap(agent_ID, patient_ID, decision, game_screen):
+def swap(agent_ID, patient_ID, decision, game_screen): # Since the time here is always needs more than 2 to actually finish, raise the endturn after 2
     if decision == "no":
         pass
     elif decision == "yes":
@@ -444,7 +452,7 @@ def swap(agent_ID, patient_ID, decision, game_screen):
     dict_for_history = {"mode":0, "agent":agent_ID, "patient":patient_ID}
     game_screen.app.game.history.append(dict_for_history)
 
-    game_screen.end_turn("dummy")
+    Clock.schedule_once(game_screen.end_turn, 2)
 
 
 

@@ -10,9 +10,12 @@ from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.image import Image
 from kivy.cache import Cache
 from kivy.uix.floatlayout import FloatLayout
+from kivy.animation import Animation
+from kivy.core.window import Window
 
 import os
 import random
+import pyglet
 
 from .player_and_action import char_selected, swap
 
@@ -375,16 +378,63 @@ class BlockSelectingSidebar(BoxLayout):
 
 
 class PlayerWidget(BoxLayout):
-    def __init__(self, game_screen,player,ratio, **kwargs):
-        super().__init__(orientation='vertical', size_hint=(0.12,0.18), **kwargs)
+    def __init__(self, game_screen,player, position, **kwargs):
+        super().__init__(orientation='vertical', size_hint=(0.15, 9/52), **kwargs) # (0.13, 0.15)
 
-        self.general_folder = os.path.join(os.path.dirname(__file__), "img_general")
+        # Define the folders to get the general, the card images and the action images
+        self.img_card_folder = os.path.join(os.path.dirname(__file__), 'img_cards')
+        self.img_action_folder = os.path.join(os.path.dirname(__file__), 'img_actions')
+        self.img_general_folder = os.path.join(os.path.dirname(__file__), "img_general")
+        self.font_folder = os.path.join(os.path.dirname(__file__), "fonts")
+
+        #Take the position side of the bubble_chat
+        self.position = position
+
+        #Initialize the bubble_chat
+        self.bubble_chat = None
+        if self.position == "top":
+            self.bubble_chat_hint_x = self.pos_hint["center_x"]
+            self.bubble_chat_hint_y = self.pos_hint["center_y"] - (167/206) * self.size_hint[1]
+            self.bubble_chat_size_hint_x = self.size_hint[0] * (118/87)
+            self.bubble_chat_size_hint_y = self.size_hint[1] * (46/103)
+
+        elif self.position == "bottom":
+            self.bubble_chat_hint_x = self.pos_hint["center_x"]
+            self.bubble_chat_hint_y = self.pos_hint["center_y"] + (167/206) * self.size_hint[1]
+            self.bubble_chat_size_hint_x = self.size_hint[0] * (118/87)
+            self.bubble_chat_size_hint_y = self.size_hint[1] * (46/103)
+
+
+        elif self.position == "left":
+            self.bubble_chat_hint_x = self.pos_hint["center_x"] - (107/87) * self.size_hint[0]
+            self.bubble_chat_hint_y = self.pos_hint["center_y"] + (65/206) * self.size_hint[1]
+            self.bubble_chat_size_hint_x = self.size_hint[0] * (40/29)
+            self.bubble_chat_size_hint_y = self.size_hint[1] * (42/103)
+
+        elif self.position == "right":
+            self.bubble_chat_hint_x = self.pos_hint["center_x"] + (107 / 87) * self.size_hint[0]
+            self.bubble_chat_hint_y = self.pos_hint["center_y"] + (65 / 206) * self.size_hint[1]
+            self.bubble_chat_size_hint_x = self.size_hint[0] * (40 / 29)
+            self.bubble_chat_size_hint_y = self.size_hint[1] * (42 / 103)
+
+        self.bubble_chat_path = os.path.join(self.img_action_folder, f"bubble_chat_{self.position}.png")
+
+
+        #Initialize the letter for swapping
+        self.letter = None
+
+
+
+
+        #For the size of the font
+        # def adjust_font_size(label, size, ratio):
+        #     label.font_size = size[1] * ratio  # Set font to 50% of label height
 
         #A float layout is to make sure that the background is behind the content
         self.layout = FloatLayout()
 
         self.background = Image(
-            source=os.path.join(self.general_folder, 'Presentation1_copy.png'),
+            source=os.path.join(self.img_general_folder, 'player_widget_background_framed.png'),
             # <- Replace with your image path
             allow_stretch=True,
             keep_ratio=False,
@@ -400,8 +450,8 @@ class PlayerWidget(BoxLayout):
         self.game_screen = game_screen
         self.chars_dict = self.game_screen.app.game.chars_dict
 
-        self.information_layout = BoxLayout(orientation='horizontal', size_hint=(1, 0.75))
-        self.action_layout = BoxLayout(orientation='horizontal', spacing = 10,  size_hint=(1,0.25))
+        self.information_layout = BoxLayout(orientation='horizontal', size_hint=(1, 1))
+        # self.action_layout = BoxLayout(orientation='horizontal', spacing = 10,  size_hint=(1,0.25))
 
         #Define the folders to get the card images and the action images
         self.img_card_folder = os.path.join(os.path.dirname(__file__), 'img_cards')
@@ -412,13 +462,9 @@ class PlayerWidget(BoxLayout):
 
         #Take the cardback
         self.card = os.path.join(self.img_card_folder,f"card_back.png") # Filename of the card image
-        #self.action = os.path.join(self.img_action_folder,"mask.png")
-        ### Just for example
 
-        self.card_image = Image(source=self.card, size_hint=(0.5, 1), allow_stretch=True,keep_ratio=False)
+        self.card_image = Image(source=self.card, size_hint=(0.5, 0.96),pos_hint = {"center_y": 0.5, "x": 0}, allow_stretch=True,keep_ratio=False)
         #self.action_image = Image(source=self.action, size_hint = (1,1))
-
-
         self.information_layout.add_widget(self.card_image)
 
 
@@ -426,31 +472,52 @@ class PlayerWidget(BoxLayout):
         #Create layout of other information
         self.layout_right = BoxLayout(orientation='vertical', spacing=0, size_hint=(0.6, 1))
 
+        #This is for the label of the role, which is red in color
+        font_size = Window.system_size[1] * self.size_hint[1] * 0.22
+        self.label_role = Label(
+            markup = True,
+            text = f"[color=8E1616]Masked[/color]", #{player.get_card().name.capitalize()}
+            size_hint=(1, 0.05),
+            halign='center',
+            valign='top',
+            color = [0, 0, 0, 1],
+            font_name = os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+            font_size = font_size
+        )
+
         self.label_id = Label(
             text = str(player.ID),
-            size_hint=(1, 0.1),
+            size_hint=(1, 0.05),
             halign='center',
             valign='top',
             color = [0, 0, 0, 1]
         )
+        # self.label_id.bind(size = lambda label, size, ratio=0.8: adjust_font_size(label, size, ratio))
+
         self.label_name = Label(
             text=player.player_name,
-            size_hint=(1, 0.3),
+            size_hint=(1, 0.05),
             halign='center',
             valign='top',
             color = [0, 0, 0, 1]
         )
+        # self.label_name.bind(size=lambda label, size, ratio=0.8: adjust_font_size(label, size, ratio))
+
+
         # Enable text wrapping
         self.label_name.bind(size=self.label_name.setter('text_size'))
+        self.layout_right.add_widget(self.label_role)
         self.layout_right.add_widget(self.label_id)
         self.layout_right.add_widget(self.label_name)
 
         #This is for the revealed
-        self.label_revealed = Label(text=f"{player.revealed} turn(s)", size_hint=(1, 0.1), color = [0, 0, 0, 1],
+        self.label_revealed = Label(text=f"{player.revealed} turn(s)", size_hint=(1, 0.05), color = [0, 0, 0, 1],
                                  pos_hint={'center_x': 0.5, 'center_y': 0.2})
+        # self.label_revealed.bind(size = lambda label, size, ratio = 0.8: adjust_font_size(label,size,ratio))
         self.layout_right.add_widget(self.label_revealed)
         #This is for the money
-        self.label_money = Label(text=f"{player.money}g", size_hint=(1, 0.1),color = [0, 0, 0, 1], pos_hint = {'center_x': 0.5, 'center_y': 0.1})
+        self.label_money = Label(text=f"{player.money}g", size_hint=(1, 0.05),color = [0, 0, 0, 1], pos_hint = {'center_x': 0.5, 'center_y': 0.1})
+        # self.label_money.bind(size=lambda label, size, ratio=0.8: adjust_font_size(label, size, ratio))
         self.layout_right.add_widget(self.label_money)
 
 
@@ -458,7 +525,7 @@ class PlayerWidget(BoxLayout):
         self.information_layout.add_widget(self.layout_right)
 
         #Add the information and the action widget to the player widget
-        self.main_layout.add_widget(self.action_layout)
+        # self.main_layout.add_widget(self.action_layout)
         self.main_layout.add_widget(self.information_layout)
 
         #Add the main contain into the float layout
@@ -469,25 +536,76 @@ class PlayerWidget(BoxLayout):
 
 
 
-    def reveal_card(self):
-        self.card = os.path.join(self.img_card_folder,f"{self.player.get_card().name}.png")
+        # #Add the hand mask normal and hand mask rotated to the specify position
+        # self.hand_mask_normal_path = os.path.join(self.img_action_folder, "img_actions/big_mask4_cropped.png")
+        # size_hint_x = self.size_hint[0] * 440/591
+        # size_hint_y = self.size_hint[1] * 183/190
+        # hint_x = self.pos_hint["center_x"] - self.size_hint[0] * 377/1182
+        # hint_y = self.pos_hint["center_y"] + self.size_hint[1] * 18/95
+        # self.hand_mask_normal = Image(source=self.hand_mask_normal_path, size_hint=(size_hint_x, size_hint_y),pos_hint = {"center_x": hint_x, "center_y": hint_y}, allow_stretch=True,keep_ratio=False)
+        #
+        # self.parent.add_widget(self.hand_mask_normal)
+
+    def init_claim(self, **kwargs):
+        # Set up the animation for the swap, the claim, the peek
+        self.claim_anim_in = Animation(opacity=1, duration=0.6)
+        self.claim_anim_out = Animation(opacity=0, duration=0.6)
+        # Add the hand mask normal to the specify position
+        self.hand_mask_normal_path = os.path.join(self.img_action_folder, "hand_mask_normal.png")
+        size_hint_x = self.size_hint[0] * 440 / 591
+        size_hint_y = self.size_hint[1] * 183 / 190
+        hint_x = self.pos_hint["center_x"] - self.size_hint[0] * 377 / 1182
+        hint_y = self.pos_hint["center_y"] + self.size_hint[1] * 18 / 95
+        self.hand_mask_normal = Image(source=self.hand_mask_normal_path, size_hint=(size_hint_x, size_hint_y),
+                                      pos_hint={"center_x": hint_x, "center_y": hint_y}, allow_stretch=True,
+                                      keep_ratio=False, opacity = 0)
+
+        self.parent.add_widget(self.hand_mask_normal)
+
+        # Add the hand mask rotated to the specify position
+        self.hand_mask_rotated_path = os.path.join(self.img_action_folder, "hand_mask_rotated.png")
+        size_hint_x = self.size_hint[0] * 364/591
+        size_hint_y = self.size_hint[1] * 451/380
+        hint_x = self.pos_hint["center_x"] - self.size_hint[0] * 509/1182
+        hint_y = self.pos_hint["center_y"] + self.size_hint[1] * 211/760
+        self.hand_mask_rotated = Image(source=self.hand_mask_rotated_path, size_hint=(size_hint_x, size_hint_y),
+                                      pos_hint={"center_x": hint_x, "center_y": hint_y}, allow_stretch=True,
+                                      keep_ratio=False, opacity = 0)
+
+        self.parent.add_widget(self.hand_mask_rotated)
+
+    def reveal_card(self, *args):
+        '''
+        The args is to support for the role want to reveal, to make the affect to know which role is being claimed
+        '''
+        if len(args) == 0:
+            self.card = os.path.join(self.img_card_folder,f"{self.player.get_card().name}.png")
+            self.label_role.text = f"[color=8E1616]{self.player.get_card().name.capitalize()}[/color]"
+        else:
+            role_ID = args[0]
+            self.card = os.path.join(self.img_card_folder,f"{self.game_screen.app.game.chars_dict[role_ID].name}.png")
 
         # Remove old texture from cache
         Cache.remove('kv.image', self.card + '|False|0')
         Cache.remove('kv.texture', self.card + '|False|0')
 
         self.card_image.source = self.card
+        self.card_image.opacity = 1
+        if len(args) == 1:
+            self.card_image.opacity = 0.5
         self.card_image.reload()  # Refresh the image
         ###Nhớ reveal trong 1 khoảng tgian
 
     def hide_card(self, dt):
         self.card = os.path.join(self.img_card_folder,"card_back.png")
+        self.label_role.text = f"[color=8E1616]Masked[/color]"
 
         # Remove old texture from cache
         Cache.remove('kv.image', self.card + '|False|0')
         Cache.remove('kv.texture', self.card + '|False|0')
 
         self.card_image.source = self.card
+        self.card_image.opacity = 1
         self.card_image.reload()  # Refresh the image
 
     def update_money(self):
@@ -505,58 +623,144 @@ class PlayerWidget(BoxLayout):
         2: peek
         3: block *args "yes" or "no", the first_ID, and the role_ID
 
+        For important information, we all use the dark red 8E1616 to highlight it
         '''
         if action_id == 0: #this is for the swap option
-            # Set up the swap widget
-            swap_path = os.path.join(self.img_action_folder, "swap.png")
-            swap_widget = Image(source=swap_path, size_hint=(1, 1))
 
             # Set up the patient, the widget
             patient_ID = args[0]
-            patient_ID_image_path = os.path.join(self.img_action_folder, f"number_{patient_ID}.png")
-            patient_widget = Image(source=patient_ID_image_path, size_hint=(1, 1))
 
-            # Add widgets to the action_layout
-            self.action_layout.add_widget(swap_widget)
-            self.action_layout.add_widget(patient_widget)
+            self.pop_bubble_chat((f"Shall we dance, "
+                                  f"[color=8E1616]Player {patient_ID}[/color]?"))
+            self.give_letter(patient_ID) #This takes more than 1.5s to finish it
+
+
+
         elif action_id == 1: #this is for the claim option
-            #Set up the claim widget
-            claim_path = os.path.join(self.img_action_folder, "claim.png")
-            claim_widget = Image(source=claim_path, size_hint=(1, 1))
-            #Set up the role, the widget
-            role_ID = args[0]
-            role_name = self.chars_dict[role_ID].name
-            role_image_path = os.path.join(self.img_action_folder,f"{role_name}.png")
-            role_widget = Image(source=role_image_path, size_hint = (1,1))
+            # Show the action bubble chat
+            role_ID_claim = args[0]
+            self.pop_bubble_chat((f"I'm the "
+                                 f"[color=8E1616]{self.game_screen.app.game.chars_dict[role_ID_claim].name.capitalize()}[/color]!"))
+            #Show the hand with the mask
+            self.claim_anim_in.start(self.hand_mask_normal)
+            # Show the card vaguely
+            self.reveal_card(role_ID_claim)
 
-            # Add widgets to the action_layout
-            self.action_layout.add_widget(claim_widget)
-            self.action_layout.add_widget(role_widget)
+
         elif action_id == 2: #this is for the peek option
+            #Pop the bubble chat
+            self.pop_bubble_chat((f"A glimpse beneath the veil..."))
             #Set up the peek widget
-            peek_path = os.path.join(self.img_action_folder, "peek.png")
-            peek_widget = Image(source=peek_path, size_hint=(1, 1))
+            peek_path = os.path.join(self.img_action_folder, "eyes.png")
+            self.peek_widget = Image(source=peek_path, size_hint=(0.5, 1),pos_hint = {"x":0, "y":0}, keep_ratio = False, allow_stretch = True, opacity = 0.6)
 
             #Add widget to the action_layout
-            self.action_layout.add_widget(peek_widget)
+            self.layout.add_widget(self.peek_widget)
         elif action_id == 3: #this is for the block option
             decision = args[0]
             first_ID = args[1]
             role_ID = args[2]
-            #Create widget
-            decision_path = os.path.join(self.img_action_folder,f"{decision}.png")
-            decision_widget = Image(source=decision_path, size_hint = (1,1))
-            #Add widget to the action_layout
-            self.action_layout.add_widget(decision_widget)
+
+            if decision == "yes":
+                self.claim_anim_in.start(self.hand_mask_normal)
+                # self.pop_bubble_chat(f"Not you! I'm the actual one!")
+                self.pop_bubble_chat(f"[color=8E1616]Treachery![/color] I'm the true one!")
+
+            else:
+                self.pop_bubble_chat((
+                    f"As you say, " # The parts without the color specified by markup will be in the font color of the label, here it will be black
+                    f"[color=8E1616]{self.game_screen.app.game.chars_dict[role_ID].name.capitalize()}[/color]."))
+
 
 
             #Continue the block turn
-            Clock.schedule_once(lambda dt: self.game_screen.block_turn(dt, first_ID, role_ID), 1)
+            Clock.schedule_once(lambda dt: self.game_screen.block_turn(dt, first_ID, role_ID), 2)
+
+    def pop_bubble_chat(self, text):
+        print(f"======{self.parent.size}=======")
+        font_size = Window.system_size[1] * self.size_hint[1] * 0.22
+        if self.bubble_chat == None:
+            # self.bubble_chat = Image(source = self.bubble_chat_path,size_hint = (self.bubble_chat_size_hint_x, self.bubble_chat_size_hint_y), pos_hint = {"center_x": self.bubble_chat_hint_x, "center_y": self.bubble_chat_hint_y}) #text = text, bubble_chat_path= self.bubble_chat_path)
+            self.bubble_chat = BubbleChat(size_hint = (self.bubble_chat_size_hint_x, self.bubble_chat_size_hint_y), pos_hint = {"center_x": self.bubble_chat_hint_x, "center_y": self.bubble_chat_hint_y}, text = text, bubble_chat_path= self.bubble_chat_path,font_size = font_size, position = self.position)
+        if self.bubble_chat.parent == None:
+            self.parent.add_widget(self.bubble_chat)
+            print(f"bubble_chat added! Content: {text}")
+
+    def give_letter (self, patient_ID): #Note that the pos, and the size of x and y in pixel are super trustworthy, while the size of the window system width height is not
+        patient_widget = self.game_screen.widgets_dict[patient_ID]
+
+        size_hint_x_letter = patient_widget.size_hint[0] * 21/58
+        size_hint_y_letter = patient_widget.size_hint[1] * 41/103
+
+        old_left_edge = self.pos[0] + self.size[0]*( 1 - 21/58)//2
+        old_bottom_edge = self.pos[1] + self.size[1]*( 1 - 41/103)//2
+
+
+        new_left_edge = patient_widget.pos[0] + patient_widget.size[0]*( 1 - 21/58)//2
+        new_bottom_edge = patient_widget.pos[1] + patient_widget.size[1]*( 1 - 41/103)//2
+
+        #Let the letter appear
+        if self.letter == None:
+            self.letter = Image(source = os.path.join( self.img_action_folder,"love_letter.png"), size_hint = (size_hint_x_letter, size_hint_y_letter), pos = (old_left_edge, old_bottom_edge))
+        if self.letter.parent == None:
+            self.parent.add_widget(self.letter)
+
+        #Give it to the patient
+        move_anim = Animation(pos = (new_left_edge, new_bottom_edge), duration = 1.5, t='out_quad')
+        move_anim.start(self.letter)
+
 
     def clear_action(self, dt):
         self.action_layout.clear_widgets()
 
+class BubbleChat(BoxLayout):
+    def __init__(self, text, bubble_chat_path,font_size, position,  **kwargs):
+        super().__init__(**kwargs)
 
+        self.font_size = font_size
+        self.main_layout = FloatLayout(size_hint = (1,1))
+        self.font_folder = os.path.join(os.path.dirname(__file__),"fonts")
+
+        # Background image (your speech bubble)
+        self.bubble = Image(
+            source=bubble_chat_path,  # your image
+            allow_stretch=True,
+            keep_ratio=False,
+            size_hint=(1, 1),
+            pos_hint={'center_x': 0.5, 'center_y': 0.5}
+        )
+        self.main_layout.add_widget(self.bubble)
+
+        if position == "right":
+            self.text_pos_hint = {'x': 1/48, 'center_y': 0.5}
+            self.text_size_hint = (47/48,1)
+
+        elif position == "left":
+            self.text_pos_hint = {'x': 0, 'center_y': 0.5}
+            self.text_size_hint = (47 / 48, 1)
+
+        elif position == "bottom":
+            self.text_pos_hint = {'center_x': 0.5, 'y': 5/46}
+            self.text_size_hint = (1, 21/23)
+        elif position == "top":
+            self.text_pos_hint = {'center_x': 0.5, 'y': 0}
+            self.text_size_hint = (1, 21/23)
+        # Text on top
+        self.label = Label(
+            markup = True,
+            text=text,
+            font_name = os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+            halign='center',
+            valign='middle',
+            color=(0, 0, 0, 1),  # black text
+            size_hint=self.text_size_hint,
+            pos_hint=self.text_pos_hint,
+            font_size = self.font_size
+        )
+        self.label.bind(size=self.label.setter('text_size'))  # Enable wrapping
+        self.main_layout.add_widget(self.label)
+
+        self.add_widget(self.main_layout)
 
 class CourtWidget(BoxLayout):
     def __init__(self, app, **kwargs):

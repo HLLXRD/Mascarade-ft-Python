@@ -2,7 +2,6 @@ from kivy.uix.label import Label
 from kivy.uix.slider import Slider
 from kivy.core.window import Window
 from kivy.uix.screenmanager import Screen
-from math import cos, sin, pi
 from kivy.uix.textinput import TextInput
 from kivy.uix.floatlayout import FloatLayout
 from kivy.clock import Clock
@@ -14,7 +13,8 @@ from kivy.uix.behaviors import ButtonBehavior
 
 
 import os
-
+from math import cos, sin, pi
+import random
 
 from .game_brain import Game
 from .sidebar_widget import ActionSidebar, CharSelectingSidebar, PlayerSelectingSidebar, SwapOrNotSidebar, BlockSelectingSidebar, PlayerWidget, CourtWidget, PauseOverlay
@@ -204,23 +204,45 @@ class OffGameScreen(Screen):
             self.player_num = self.app.player_num
             center_x = 0.5
             center_y = 0.5
-            radius = 0.2
-            ratio = Window.width / Window.height
+            radius = 0.4
+            ratio = 1/(Window.width / Window.height)
 
             for i in range(self.player_num):
                 angle = -pi / 2 + 2 * pi * i / self.player_num
-                x = center_x + radius * cos(angle)
-                y = center_y + radius * sin(angle) * ratio
+                if self.player_num == 8 :
+                    if i == 5 or i == 1:
+                        angle += pi/18
+                    elif i == 3 or i == 7:
+                        angle -= pi/18
+                x = center_x + radius * cos(angle) * ratio
+                y = center_y + radius * sin(angle)
 
-                player_space = PlayerWidget(self, self.app.game.players_dict[i], ratio,
+                if angle == -pi / 2:
+                    position = "bottom"
+                elif angle == pi/2:
+                    position = "top"
+                elif -pi/2 < angle < pi/2:
+                    position = "right"
+                else:
+                    position = "left"
+
+                player_space = PlayerWidget(self, self.app.game.players_dict[i], position,
                                             pos_hint={'center_x': x, 'center_y': y})
+
                 self.widgets_dict[i] = player_space
                 self.layout.add_widget(player_space)
 
+                # player_space.init_action()
             #For the court
             self.court_widget = CourtWidget(self.app)
             self.layout.add_widget(self.court_widget)
             self.widgets_dict['court'] = self.court_widget
+
+            #Init the hands on the widget
+            for i in self.widgets_dict:
+                if type(i) == int:
+                    self.widgets_dict[i].init_claim()
+
 
             #For the pause button
             self.pause_button = Button(text="Pause", size_hint=(0.05,0.05), pos_hint={'right': 1})
@@ -230,6 +252,11 @@ class OffGameScreen(Screen):
 
             self.add_widget(self.layout)
             self.layout_initialized = True
+
+            # # Init the hands on the widget
+            # for i in self.widgets_dict:
+            #     if type(i) == int:
+            #         self.widgets_dict[i].pop_bubble_chat("Ohmni!")
 
     def minimize_window(self, instance):
         Window.minimize()
@@ -255,7 +282,7 @@ class OffGameScreen(Screen):
         for i in self.widgets_dict:
             if type(i) == int:
                 self.widgets_dict[i].reveal_card()
-                Clock.schedule_once(self.widgets_dict[i].hide_card, 5)
+                Clock.schedule_once(self.widgets_dict[i].hide_card, 5 * self.player_num/4)
         Clock.schedule_once(self.play_turn, 5.5)
 
     def play_turn(self, dt):
@@ -299,7 +326,7 @@ class OffGameScreen(Screen):
                 curr_player.reveal_update([(curr_turn, curr_player.get_card().ID)], "normal")
 
                 #Store to the history
-                self.app.game.history.append({'mode': 22, "player": player_ID})
+                self.app.game.history.append({'mode': 2, "player": player_ID})
 
                 #Endturn
                 self.end_turn("dummy")
@@ -312,14 +339,14 @@ class OffGameScreen(Screen):
         self.block_turn_index += 1
         # print(f"====={self.block_turn_index}=====")
         if self.block_turn_index == self.app.game.player_num: #Finish resolve
+            print(self.layout.size)
 
             #Resolve the claim phase, also update all the bots based on the revealed cards
             self.resolve_claim()
 
             if not (self.app.game.chars_dict[role_ID] in self.app.game.special_activate and self.app.game.affected_dict["status"] == 1): #If not the situation that the special activate is actually activated
 
-
-                Clock.schedule_once(self.complete_claim, 0)
+                Clock.schedule_once(self.complete_claim, 2.1)
 
         else:
             # self.block_turn_index += 1
@@ -346,59 +373,97 @@ class OffGameScreen(Screen):
         if len(game.decide_dict["yes"]) == 1:
             first_ID = game.decide_dict["yes"][0]
             first = game.players_dict[first_ID]
-            game.affected_dict["status"] = 1
+            first_widget = self.widgets_dict[first_ID]
 
-            game.dict_for_history["claimers"].append((first_ID, role_ID))
+            first_widget.parent.remove_widget(first_widget.bubble_chat) # Remove the bubble chat
+            first_widget.bubble_chat = None
 
-            if game.chars_dict[role_ID] not in self.app.game.special_activate:
-                game.chars_dict[role_ID].activate(first, self.app.game)
-                print(f">>{role_claimed.name} triggered")
+            #If there is only one, make the glove with the mask fade, and replace the transparent card with the cardback
+            Clock.schedule_once(first_widget.hide_card, 0)
 
-            else:
-                game.chars_dict[role_ID].activate(first, game, self)
-                print(f">>{role_claimed.name} triggered")
+            first_widget.claim_anim_out.start(first_widget.hand_mask_normal) # This take 0.6s to complete
+
+            def one_yes(dt):
+
+                game.affected_dict["status"] = 1
+
+                game.dict_for_history["claimers"].append((first_ID, role_ID))
+
+                if game.chars_dict[role_ID] not in self.app.game.special_activate:
+                    game.chars_dict[role_ID].activate(first, self.app.game)
+                    print(f">>{role_claimed.name} triggered")
+
+                else:
+                    game.chars_dict[role_ID].activate(first, game, self)
+                    print(f">>{role_claimed.name} triggered")
+
+            Clock.schedule_once(one_yes, 0.8)
             ###This update for the situation everyone agree may cause the bot assume that player is the real role, while we can solve this by just raise the probability to 0.5
         else:
             #If there is more than 1 players claim, add the court to the affected
             game.affected_dict["affected"].add("court")
             true_IDs = [] #For the farmers
             game.wrong_IDs = []
+
+            #Remove all the bubbles chat from the claiming yes or no phase
+            for player_ID in game.players_dict:
+                widget = self.widgets_dict[player_ID]
+                widget.parent.remove_widget(widget.bubble_chat)
+                widget.bubble_chat = None
+
+            print(f"====={game.decide_dict["yes"]}")
             for player_ID in game.decide_dict["yes"]:
+                widget = self.widgets_dict[player_ID]
                 player = game.players_dict[player_ID]
                 card_ID = player.get_card().ID
 
-                #Reveal the card
-                self.widgets_dict[player_ID].reveal_card()
+                #Reveal the card, show the animation of the hand, which will take 1,2s in total
+                widget.claim_anim_out.start(widget.hand_mask_normal)
+                Clock.schedule_once(lambda dt,w = widget: w.claim_anim_in.start(w.hand_mask_rotated), 0.6)
+                widget.reveal_card()
 
-                #Update revealed
-                game.players_dict[player_ID].revealed = len(self.app.game.players_dict) // 2 + 1  # Always +1 since this turn revealed cards decreased the confidence, the players inside the yes wont be decreased
+                def update_claim(dt, player_ID, card_ID, role_ID, widget):
+                    print(f"^^^^^{player_ID, card_ID}^^^^^ ")
+                    #Update revealed
+                    game.players_dict[player_ID].revealed = len(self.app.game.players_dict) // 2 + 1  # Always +1 since this turn revealed cards decreased the confidence, the players inside the yes wont be decreased
 
-                if card_ID == role_ID:
-                    game.affected_dict["status"] = 1
-                    true_IDs.append(player_ID)
-            ###Consider remove the "yes" with the "affected" but the problem appears when we update the affected when activate it so then the yes, or the affected will be polluted
-                else:
-                    game.wrong_IDs.append(player_ID)
 
-                game.dict_for_history["claimers"].append((player_ID, card_ID))
+                    if card_ID == role_ID:
+                        print("^^^^^Debug^^^^^ ")
+                        game.affected_dict["status"] = 1
+                        true_IDs.append(player_ID)
+                        widget.pop_bubble_chat(f"{random.choice(game.chars_dict[role_ID].list_success)}")
+
+                    else:
+                        game.wrong_IDs.append(player_ID)
+                        widget.pop_bubble_chat(f"{random.choice(game.players_dict[player_ID].get_card().list_fail)}")
+
+                    game.dict_for_history["claimers"].append((player_ID, card_ID))
+
+                Clock.schedule_once(lambda dt, p = player_ID, c = card_ID, r = role_ID, w = widget:update_claim(dt, p, c, r, w), 1.4)
 
             #Activate the role on the true player
+            def activ(dt):
+                if len(true_IDs) != 0:
+                    true_ID = true_IDs[0]
+                    true_player = game.players_dict[true_ID]
 
-            if len(true_IDs) != 0:
-                true_ID = true_IDs[0]
-                true_player = game.players_dict[true_ID]
+                    if game.chars_dict[role_ID] not in self.app.game.special_activate:
+                        game.chars_dict[role_ID].activate(true_player, self.app.game)
+                        print(f">>{role_claimed.name} triggered")
 
-                if game.chars_dict[role_ID] not in self.app.game.special_activate:
-                    game.chars_dict[role_ID].activate(true_player, self.app.game)
-                    print(f">>{role_claimed.name} triggered")
+                    else:
+                        game.chars_dict[role_ID].activate(true_player, game, self)
+                        print(f">>{role_claimed.name} triggered")
 
-                else:
-                    game.chars_dict[role_ID].activate(true_player, game, self)
-                    print(f">>{role_claimed.name} triggered")
+            Clock.schedule_once(activ,1.6)
 
 
         #Add the dictionary to the history
-        game.history.append(game.dict_for_history)
+        def update_his(dt):
+            game.history.append(game.dict_for_history)
+
+        Clock.schedule_once(update_his, 1.8)
 
 
     def penalize(self):
@@ -410,22 +475,35 @@ class OffGameScreen(Screen):
             game.court += 1
     def update_UI_and_check(self):
         # print(f"\n\n\n {self.app.game.court}")
+        print(f"====={self.app.game.affected_dict["affected"]}=====")
+
+
         for i in self.app.game.affected_dict["affected"]:
             #Since the widgets_dict has both 'court' (str) and 0,1,2,3,4,5(int), we can just update money for all players
             self.widgets_dict[i].update_money()
 
-        for i in self.app.game.decide_dict["yes"]:
-            Clock.schedule_once(self.widgets_dict[i].hide_card, 1.5) ###We can just add 0.5 + i * delta_time so that the cards are hid gradually
+        if len(self.app.game.decide_dict["yes"]) > 1:
+            for i in self.app.game.decide_dict["yes"]:
+                Clock.schedule_once(self.widgets_dict[i].hide_card, 2) ###We can just add 0.5 + i * delta_time so that the cards are hid gradually
+                Clock.schedule_once(lambda dt ,widget_ID = i: self.widgets_dict[widget_ID].parent.remove_widget(self.widgets_dict[widget_ID].bubble_chat), 2)
+                def none_bubble_chat(dt, widget_ID):
+                    self.widgets_dict[widget_ID].bubble_chat = None
 
-        check_result = self.app.game.check("real")
-        def delayed_check(dt):
+                Clock.schedule_once(lambda dt, widget_ID = i: none_bubble_chat(dt, widget_ID), 2)
+
+        #Remove all the gloves for claim then check the result
+        def delayed_check_remove_hand(dt):
+            for i in self.app.game.decide_dict["yes"]:
+                if self.widgets_dict[i].hand_mask_rotated.opacity != 0:
+                    self.widgets_dict[i].hand_mask_rotated.opacity = 0
+            check_result = self.app.game.check("real")
             if check_result == 0:
                 return
             elif 0 in check_result :  # You won
                 self.app.sm.current = "win_scene"
             else:
                 self.app.sm.current = "lose_scene"
-        Clock.schedule_once(delayed_check, 2.3)
+        Clock.schedule_once(delayed_check_remove_hand, 2.3)
 
 
 
@@ -459,9 +537,38 @@ class OffGameScreen(Screen):
     def end_turn(self, dt):
         print("=======End Turn======")
         #Remove all the actions
-        for i in self.widgets_dict:
-            if type(i) == int:
-                Clock.schedule_once(self.widgets_dict[i].clear_action, 1)
+        # for i in self.widgets_dict:
+        #     if type(i) == int:
+        #         Clock.schedule_once(self.widgets_dict[i].clear_action, 1)
+        #If there is the letter from the last swapping, clear it
+        if self.app.game.history[-1]["mode"] == 0:
+            agent_ID = self.app.game.history[-1]["agent"]
+
+            agent_widget = self.widgets_dict[agent_ID]
+
+            if agent_widget.letter != None:
+                agent_widget.parent.remove_widget(agent_widget.letter)
+                agent_widget.letter = None
+            if agent_widget.bubble_chat != None:
+                agent_widget.parent.remove_widget(agent_widget.bubble_chat)
+                agent_widget.bubble_chat = None
+
+        elif self.app.game.history[-1]["mode"] == 2:
+            player_ID = self.app.game.history[-1]["player"]
+            player_widget = self.widgets_dict[player_ID]
+
+            if player_widget.peek_widget != None:
+                player_widget.layout.remove_widget(player_widget.peek_widget)
+                player_widget.peek_widget = None
+
+            if player_widget.bubble_chat != None:
+                player_widget.parent.remove_widget(player_widget.bubble_chat)
+                player_widget.bubble_chat = None
+
+
+
+
+
         #Update the action
         self.app.game.update()
         for i in self.app.game.players_dict:

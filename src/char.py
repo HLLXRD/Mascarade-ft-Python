@@ -11,9 +11,13 @@ class King(Character):
     name = "king" # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
     gender = "male"
     label_messages = None
+    list_success = ["King success"]
+    list_fail = ["King fail"]
 
     def __init__(self,ID):
         super().__init__(King.name, King.gender, ID)
+        self.list_success = King.list_success
+        self.list_fail = King.list_fail
 
     @classmethod
     def activate(cls, player,game):
@@ -25,8 +29,12 @@ class Queen(Character):
     name = "queen"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
     gender = "female"
     label_messages = None
+    list_success = ["Queen success"]
+    list_fail = ["Queen fail"]
     def __init__(self, ID):
         super().__init__(Queen.name, Queen.gender, ID)
+        self.list_success = Queen.list_success
+        self.list_fail = Queen.list_fail
     @classmethod
     def activate(cls, player,game):
         # print(f"{cls.name} triggered")
@@ -38,9 +46,13 @@ class Thief(Character):
     name = "thief"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
     gender = "male"
     label_messages = None
+    list_success = ["Thief success"]
+    list_fail = ["Thief fail"]
 
     def __init__(self,ID):
         super().__init__(Thief.name, Thief.gender, ID)
+        self.list_success = Thief.list_success
+        self.list_fail = Thief.list_fail
     @classmethod
     def activate(cls, player, game):
         # print(f"{cls.name} triggered")
@@ -62,8 +74,12 @@ class Judge(Character):
     name = "judge"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
     gender = "male"
     label_messages = None
+    list_success = ["Judge success"]
+    list_fail = ["Judge fail"]
     def __init__(self,ID):
         super().__init__(Judge.name, Judge.gender, ID)
+        self.list_success = Judge.list_success
+        self.list_fail = Judge.list_fail
     @classmethod
     def activate(cls, player, game):
         # print(f"{cls.name} triggered")
@@ -78,8 +94,12 @@ class Widow(Character):
     name = "widow"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
     gender = "female"
     label_messages = None
+    list_success = ["Widow success"]
+    list_fail = ["Widow fail"]
     def __init__(self, ID):
         super().__init__(Widow.name, Widow.gender, ID)
+        self.list_success = Widow.list_success
+        self.list_fail = Widow.list_fail
     @classmethod
     def activate(cls, player,game):
         # print(f"{cls.name} triggered")
@@ -93,8 +113,14 @@ class Bishop(Character):
     name = "bishop"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
     gender = "male"
     label_messages = None ###We can add this for the tie situation
+    list_success = ["Bishop success"]
+    list_fail = ["Bishop fail"]
     def __init__(self, ID):
         super().__init__(Bishop.name, Bishop.gender, ID)
+        self.list_success = Bishop.list_success
+        self.list_fail = Bishop.list_fail
+
+
     @classmethod
     def activate(cls, player,game):
         # print(f"{cls.name} triggered")
@@ -125,9 +151,13 @@ class Courtesan(Character):
     name = "courtesan"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
     gender = "female"
     label_messages = None
+    list_success = ["Courtesan success"]
+    list_fail = ["Courtesan fail"]
 
     def __init__(self,ID):
         super().__init__(Courtesan.name, Courtesan.gender, ID)
+        self.list_success = Courtesan.list_success
+        self.list_fail = Courtesan.list_fail
     @classmethod
     def activate(cls, player, game, *args):
         # print(f"{cls.name} triggered")
@@ -154,9 +184,13 @@ class Cheat(Character):
     name = "cheat"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
     gender = "male"
     label_messages = None
+    list_success = ["Cheat success"]
+    list_fail = ["Cheat fail"]
 
     def __init__(self,ID):
         super().__init__(Cheat.name, Cheat.gender, ID)
+        self.list_success = Cheat.list_success
+        self.list_fail = Cheat.list_fail
     @classmethod
     def activate(cls, player, game):
         # print(f"{cls.name} triggered")
