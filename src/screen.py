@@ -59,6 +59,7 @@ class MenuScreen(Screen):
     def start_game(self, instance):
         print("Starting game...")
         self.app.game = Game(player_num = self.app.player_num)
+        print(f"++++{Window.size}+++++++")
         self.manager.current = 'off_name_typing'
         # You can switch to game screen here later
 
@@ -130,6 +131,7 @@ class OptionsScreen(Screen):
 class OffNameScreen(Screen):
     def __init__(self,app, **kwargs):
         super().__init__(**kwargs)
+        print(Window.size)
         self.app = app
         self.name = 'off_name_typing'
 
@@ -156,16 +158,6 @@ class OffNameScreen(Screen):
         self.app.game.take_player_names(name)
         self.app.game.game_build()
         self.manager.current = 'off_game'
-
-
-#### Added ActionSidebar class for player decision making
-
-
-
-
-
-
-
 
 class OffGameScreen(Screen):
     def __init__(self, app, **kwargs):
@@ -215,6 +207,11 @@ class OffGameScreen(Screen):
                     if i == 5 or i == 1:
                         angle += pi/18
                     elif i == 3 or i == 7:
+                        angle -= pi/18
+                if self.player_num == 7:
+                    if i == 1:
+                        angle += pi/18
+                    elif i == 6:
                         angle -= pi/18
                 x = center_x + radius * cos(angle) * ratio
                 y = center_y + radius * sin(angle)
@@ -355,10 +352,10 @@ class OffGameScreen(Screen):
             print(self.layout.size)
 
             #Resolve the claim phase, also update all the bots based on the revealed cards
-            self.resolve_claim()
+            self.resolve_claim() # This need approaximately 1.8s to finish
 
-            if not (self.app.game.chars_dict[role_ID] in self.app.game.special_activate and self.app.game.affected_dict["status"] == 1): #If not the situation that the special activate is actually activated
-
+            if not (self.app.game.chars_dict[role_ID] in self.app.game.special_activate): #and self.app.game.affected_dict["status"] == 1): #If not the situation that the special activate is actually activated
+                print("Complete claim due to normal role, not special!!!")
                 Clock.schedule_once(self.complete_claim, 2.1)
 
         else:
@@ -444,7 +441,6 @@ class OffGameScreen(Screen):
 
 
                     if card_ID == role_ID:
-                        print("^^^^^Debug^^^^^ ")
                         game.affected_dict["status"] = 1
                         true_IDs.append(player_ID)
                         widget.pop_bubble_chat(f"{random.choice(game.chars_dict[role_ID].list_success)}")
@@ -497,11 +493,17 @@ class OffGameScreen(Screen):
             #Since the widgets_dict has both 'court' (str) and 0,1,2,3,4,5(int), we can just update money for all players
             self.widgets_dict[i].update_money()
 
+        print(f"The yes dict when update the UI: {self.app.game.decide_dict["yes"]}")
+
         if len(self.app.game.decide_dict["yes"]) > 1:
             for i in self.app.game.decide_dict["yes"]:
                 Clock.schedule_once(self.widgets_dict[i].hide_card, 2) ###We can just add 0.5 + i * delta_time so that the cards are hid gradually
-                Clock.schedule_once(lambda dt ,widget_ID = i: self.widgets_dict[widget_ID].parent.remove_widget(self.widgets_dict[widget_ID].bubble_chat), 2)
+                def remove_widget(dt, widget_ID):
+                    print(f"Removing Bubble Chat of the Player {widget_ID}")
+                    self.widgets_dict[widget_ID].parent.remove_widget(self.widgets_dict[widget_ID].bubble_chat)
+                Clock.schedule_once(lambda dt ,widget_ID = i: remove_widget(dt, widget_ID), 2)
                 def none_bubble_chat(dt, widget_ID):
+                    print(f"Removing Chat of the Player {widget_ID} from the parent")
                     self.widgets_dict[widget_ID].bubble_chat = None
 
                 Clock.schedule_once(lambda dt, widget_ID = i: none_bubble_chat(dt, widget_ID), 2)
@@ -537,9 +539,10 @@ class OffGameScreen(Screen):
 
             Clock.schedule_once(self.widgets_dict[customer_ID].hide_card, 2)
 
-            Clock.schedule_once(self.complete_claim, 2.5)
+            Clock.schedule_once(self.complete_claim, 3)
 
     def complete_claim(self, dt):
+        print("Complete the claim of the turn!")
         #Penalize the wrong players after complete
         self.penalize()
         # Update the UI, and also check if the win condition has met
@@ -579,10 +582,6 @@ class OffGameScreen(Screen):
             if player_widget.bubble_chat != None:
                 player_widget.parent.remove_widget(player_widget.bubble_chat)
                 player_widget.bubble_chat = None
-
-
-
-
 
         #Update the action
         self.app.game.update()

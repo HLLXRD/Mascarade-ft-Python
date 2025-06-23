@@ -330,7 +330,6 @@ class Bot(Player):
         #If the bot's self probability about the role is high, say yes
 
         if len(game_screen.app.game.decide_dict["yes"]) == 1:
-            print(f">>>>{self.ID} len 1 yes <<<<")
             #If the win condition is trigger after that, say no if this bot included in the winners
             if type(game_screen.app.game.result_test_win_condition) == set:
                 if self.ID in game_screen.app.game.result_test_win_condition:
@@ -346,28 +345,24 @@ class Bot(Player):
         if state == None:
             #If the probability is more than 0.45, say yes
             if self.memory_card_array[self.ID, role_ID] >= random_threshold(0.45):
-                print(f">>>>{self.ID} 0.45 yes <<<<")
                 game_screen.app.game.decide_dict["yes"].append(self.ID)
                 state = "yes"
             # If the probablity is from 0.3 to 0.45, and claim it can make this bot win, say yes:
             elif random_threshold(0.25) <= self.memory_card_array[self.ID, role_ID] < random_threshold(0.45):
                 if type(self_test_result) == set:
                     if self.ID in self_test_result:
-                        print(f">>>>{self.ID} between yes <<<<")
                         game_screen.app.game.decide_dict["yes"].append(self.ID)
                         state = "yes"
                     # Else, say no
                     else:
-                        print(f">>>>{self.ID} between no <<<<")
                         game_screen.app.game.decide_dict["no"].append(self.ID)
                         state = "no"
                 #If the win condition is not triggered but the confidence and the probability of all player in that role is low, and the bot won't lose all the money if it fails, say yes
                 elif not any(game_screen.app.game.players_dict[x].confidence >= random_threshold(0.4) for x in game_screen.app.game.decide_dict["yes"]) and not self.money == 1 and not np.any(self.memory_card_array[:,role_ID] > random_threshold(0.3)):
-                    print(f">>>>{self.ID} low conf yes <<<<")
                     game_screen.app.game.decide_dict["yes"].append(self.ID)
                     state = "yes"
                 else:
-                    print(f">>>>{self.ID} low conf no <<<<")
+
                     game_screen.app.game.decide_dict["no"].append(self.ID)
                     state = "no"
 
@@ -375,13 +370,12 @@ class Bot(Player):
             elif random_threshold(0.1) < self.memory_card_array[self.ID, role_ID] < random_threshold(0.25):
                 #If the money is 1, say no immediately
                 if self.money == 1:
-                    print(f">>>>{self.ID} no since poor <<<<")
+
                     game_screen.app.game.decide_dict["no"].append(self.ID)
                     state = "no"
 
                 #The confidence and probablity of this is lower than the before thresholds
                 elif not any(game_screen.app.game.players_dict[x].confidence >= random_threshold(0.3) for x in game_screen.app.game.decide_dict["yes"]) and not np.any(self.memory_card_array[:,role_ID] > random_threshold(0.15)):
-                    print(print(f">>>>{self.ID} low conf yes <<<<"))
                     game_screen.app.game.decide_dict["yes"].append(self.ID)
                     state = "yes"
             #If the probability is lower than 0.1, say no
@@ -390,7 +384,7 @@ class Bot(Player):
                 state = "no"
 
         if state == None:
-            print(print(f">>>>{self.ID} the LAST no <<<<"))
+
             game_screen.app.game.decide_dict["no"].append(self.ID)
             state = "no"
 

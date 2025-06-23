@@ -52,28 +52,7 @@ class GameApp(App):
         return self.sm
 
     def on_start(self):
-        # if platform in ('win', 'linux', 'macosx'):
-        #     Window.maximize()
-        #     screen_width, screen_height = Window.system_size  # ✅ not Window.size!
-        #     print("Real screen resolution:", screen_width, screen_height)
-        #     Window.minimize()
-        #
-        #     # Example: Resize window to 80% of real screen
-        #     scale = 0.8
-        #     target_width = int(screen_width * scale)
-        #     target_height = int(screen_height * scale)
-        #
-        #     Window.size = (target_width, target_height)
-        #     print("Resized Kivy window to:", Window.size)
-        # Clock.schedule_interval(self.check_window_resize, 0.2) #Put here will finish this before all the setting below catches up
 
-        # if platform == 'win':
-        #     user32 = ctypes.windll.user32
-        #     self.system_normal_width = user32.GetSystemMetrics(0)
-        #     self.system_normal_height = user32.GetSystemMetrics(1)
-        #     #print("Real native screen:", screen_width, screen_height)
-        # #self.system_normal_width, self.system_normal_height = Window.system_size
-        # print(f"The system size when in normal form is {self.system_normal_width}x{self.system_normal_height}")
 
         self.normal_width, self.normal_height = Window.size
         print(f"The window size when in normal form is {self.normal_width}x{self.normal_height}")
@@ -134,25 +113,28 @@ class GameApp(App):
 
         self.prev_maximized = is_now_maximized
 
-    ### Fix the position of the widgets inside the circle
+    ### Fix the position of the widgets inside the circle ( fixed 7, 8)
     ### Add the card name when revealed
     ### Add return button, pause button
     ### Add rulebook
     ### Limit name, fix information
     ### Add empty widget to the layout
     ### Scale the starting time with the number of players
-
+    ### Reset the changing cards to the victim of the swap cards
+    ### Scale the font size with the size of the window game
+    ### Shorten the name of the bot
+    ### Clear cache each game
 
 
 
 if __name__ == '__main__':
-    print(os.path.dirname(__file__))
     app = GameApp()
     app.run()
 
-    if platform == 'win':
-        user32 = ctypes.windll.user32
-        screen_width = user32.GetSystemMetrics(0)
-        screen_height = user32.GetSystemMetrics(1)
-        print("Real native screen:", screen_width, screen_height)
+
+    # if platform == 'win':
+    #     user32 = ctypes.windll.user32
+    #     screen_width = user32.GetSystemMetrics(0)
+    #     screen_height = user32.GetSystemMetrics(1)
+    #     print("Real native screen:", screen_width, screen_height)
 

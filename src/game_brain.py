@@ -33,6 +33,7 @@ class Game:
         self.female = [Queen, Widow, Courtesan]
 
     def game_build(self):
+        print("Buiding game....")
         #Setup roles
         roles = Character.__subclasses__() #Get all available roles, not the judge
 

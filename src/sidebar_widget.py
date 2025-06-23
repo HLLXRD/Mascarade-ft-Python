@@ -672,7 +672,6 @@ class PlayerWidget(BoxLayout):
                     f"[color=8E1616]{self.game_screen.app.game.chars_dict[role_ID].name.capitalize()}[/color]."))
 
 
-
             #Continue the block turn
             Clock.schedule_once(lambda dt: self.game_screen.block_turn(dt, first_ID, role_ID), 2)
 
@@ -684,7 +683,7 @@ class PlayerWidget(BoxLayout):
             self.bubble_chat = BubbleChat(size_hint = (self.bubble_chat_size_hint_x, self.bubble_chat_size_hint_y), pos_hint = {"center_x": self.bubble_chat_hint_x, "center_y": self.bubble_chat_hint_y}, text = text, bubble_chat_path= self.bubble_chat_path,font_size = font_size, position = self.position)
         if self.bubble_chat.parent == None:
             self.parent.add_widget(self.bubble_chat)
-            print(f"bubble_chat added! Content: {text}")
+        print(f"bubble_chat added! Content: {text}")
 
     def give_letter (self, patient_ID): #Note that the pos, and the size of x and y in pixel are super trustworthy, while the size of the window system width height is not
         patient_widget = self.game_screen.widgets_dict[patient_ID]
@@ -768,15 +767,19 @@ class CourtWidget(BoxLayout):
         self.app = app
         self.font_folder = os.path.join(os.path.dirname(__file__),"fonts")
 
-        self.court_name = Label(text="Court", font_size=35, size_hint=(1, 0.3), font_name = os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"), color = (0,0,0,1))
-        self.court_money = Label(text = f"{self.app.game.court}g", font_size=60, size_hint=(1, 0.3), font_name = os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"), color = (0,0,0,1))
-
+        self.court_name = Label(text="Court", font_size=0.3 * self.size[1], size_hint=(1, 0.3), font_name = os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"), color = (0,0,0,1)) #### 35
+        self.court_money = Label(text = f"{self.app.game.court}g", font_size=0.7 * self.size[1], size_hint=(1, 0.3), font_name = os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"), color = (0,0,0,1)) #### 60
+        self.bind(size = self.update_size)
         self.add_widget(self.court_name)
         self.add_widget(self.court_money)
 
     def update_money(self):
         new_gold = self.app.game.court
         self.court_money.text = f"{new_gold}g"
+
+    def update_size(self, instance, value):
+        self.court_name.font_size = 0.3 * instance.size[1]
+        self.court_money.font_size = 0.7 * instance.size[1]
 
 
 class PauseOverlay(FloatLayout):
