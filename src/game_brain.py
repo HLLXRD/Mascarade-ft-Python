@@ -85,6 +85,7 @@ class Game:
         self.chars_dict = {}
         self.reversed_chars_dict = {}
         self.bots_dict = {}
+        self.player_names_dict = {}
 
         bot = ["HLLXRD", "Chinhcachep", "Spiderpool", "Sunsea", "Khoaissleeping", "Rmie", "Yukino", "QuanNg"]
         trait = [" bell", " the_leader", " hedgehog", " hehehe", " intern", " bomboclaat", " university", "3subeso"]
@@ -101,6 +102,9 @@ class Game:
                 self.chars_dict[card.ID] = card.__class__
                 self.reversed_chars_dict[card.__class__] = card.ID
 
+                #Add the player's ID to the dict of IDs with the name of the player as the key
+                self.player_names_dict[player_name] = i
+
                 # Add the message to the messages dictionary
                 if card.label_messages:
                     self.label_messages_dict[card.name] = card.label_messages
@@ -114,6 +118,9 @@ class Game:
                 # Add the roles to the characters dictionary
                 self.chars_dict[card.ID] = card.__class__
                 self.reversed_chars_dict[card.__class__] = card.ID
+
+                # Add the player's ID to the dict of IDs with the name of the player as the key
+                self.player_names_dict[bot_name] = i
 
         #Initialize the bot's memory dictionary
         base_arr = np.zeros((self.player_num,self.player_num))
@@ -129,6 +136,8 @@ class Game:
                 pass
             elif self.players_dict[i].type == "bot":
                 self.players_dict[i].memory_card_array = np.array(base_arr)
+
+        print(self.player_names_dict)
 
 
 
@@ -240,7 +249,6 @@ class Game:
         clone.chars_dict = copy.deepcopy(self.chars_dict)
         clone.affected_dict = copy.deepcopy(self.affected_dict)
         # clone.high_impacts = copy.deepcopy(self.high_impacts)
-
 
 
         #Specify the role that we want to test now

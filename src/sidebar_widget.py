@@ -58,10 +58,10 @@ class ActionSidebar(BoxLayout):
         self.add_widget(look_btn)
 
         # If the revealed is 0 and the total turns played are more than 2, show the claim
-        if self.player.revealed == 0 and self.game_screen.play_turn_index > 2:
-            claim_btn = Button(text="Claim Role", font_size=18, size_hint=(1, 0.15))
-            claim_btn.bind(on_press=self.on_claim_role)
-            self.add_widget(claim_btn)
+        # if self.player.revealed == 0 and self.game_screen.play_turn_index > 2:
+        claim_btn = Button(text="Claim Role", font_size=18, size_hint=(1, 0.15))
+        claim_btn.bind(on_press=self.on_claim_role)
+        self.add_widget(claim_btn)
 
         # Spacer
         self.add_widget(Label(text="", size_hint=(1, 0.3)))
@@ -630,8 +630,11 @@ class PlayerWidget(BoxLayout):
             # Set up the patient, the widget
             patient_ID = args[0]
 
+            # self.pop_bubble_chat((f"Shall we dance, "
+            #                       f"[color=8E1616]Player {patient_ID}[/color]?"))
             self.pop_bubble_chat((f"Shall we dance, "
-                                  f"[color=8E1616]Player {patient_ID}[/color]?"))
+                                  f"[color=8E1616]Player {self.game_screen.app.game.players_dict[patient_ID].player_name}aaaaaaaaaaaaa[/color]"
+                                  ))
             self.give_letter(patient_ID) #This takes more than 1.5s to finish it
 
 
@@ -677,10 +680,10 @@ class PlayerWidget(BoxLayout):
 
     def pop_bubble_chat(self, text):
         print(f"======{self.parent.size}=======")
-        font_size = Window.system_size[1] * self.size_hint[1] * 0.22
+        # font_size = Window.system_size[1] * self.size_hint[1] * 0.22
         if self.bubble_chat == None:
             # self.bubble_chat = Image(source = self.bubble_chat_path,size_hint = (self.bubble_chat_size_hint_x, self.bubble_chat_size_hint_y), pos_hint = {"center_x": self.bubble_chat_hint_x, "center_y": self.bubble_chat_hint_y}) #text = text, bubble_chat_path= self.bubble_chat_path)
-            self.bubble_chat = BubbleChat(size_hint = (self.bubble_chat_size_hint_x, self.bubble_chat_size_hint_y), pos_hint = {"center_x": self.bubble_chat_hint_x, "center_y": self.bubble_chat_hint_y}, text = text, bubble_chat_path= self.bubble_chat_path,font_size = font_size, position = self.position)
+            self.bubble_chat = BubbleChat(size_hint = (self.bubble_chat_size_hint_x, self.bubble_chat_size_hint_y), pos_hint = {"center_x": self.bubble_chat_hint_x, "center_y": self.bubble_chat_hint_y}, text = text, bubble_chat_path= self.bubble_chat_path, position = self.position) #font_size = font_size
         if self.bubble_chat.parent == None:
             self.parent.add_widget(self.bubble_chat)
         print(f"bubble_chat added! Content: {text}")
@@ -713,10 +716,9 @@ class PlayerWidget(BoxLayout):
         self.action_layout.clear_widgets()
 
 class BubbleChat(BoxLayout):
-    def __init__(self, text, bubble_chat_path,font_size, position,  **kwargs):
+    def __init__(self, text, bubble_chat_path, position,  **kwargs):
         super().__init__(**kwargs)
 
-        self.font_size = font_size
         self.main_layout = FloatLayout(size_hint = (1,1))
         self.font_folder = os.path.join(os.path.dirname(__file__),"fonts")
 
@@ -754,22 +756,55 @@ class BubbleChat(BoxLayout):
             color=(0, 0, 0, 1),  # black text
             size_hint=self.text_size_hint,
             pos_hint=self.text_pos_hint,
-            font_size = self.font_size
+            shorten = False, #False
+
+            # split_str=''
+            # line_height = 1.5
+            # font_size = self.font_size
         )
+
+
+        self.label.font_size = self.label.size[1] * 0.37
+        self.label.text_size = self.label.size
+        # self.label.text_size = (self.label.width, None)
+        # self.label.bind(size=lambda inst, size: setattr(inst, 'text_size', (size[0], None)))
+        # self.label.line_height = self.label.size[1]*0.013 # Using this to customize the line spacing is kinda good but it will affect the alignment of the text somehow
+        self.label.bind(size = self.update_font_size)
+
+        # #Draw a white rectangle to test the size of the rectangle
+        # with self.label.canvas.before:
+        #     Color(1, 1, 1, 1)
+        #     self._bg_rect = Rectangle(pos = self.label.pos, size=self.label.size)
+        # # Keep the rectangle in sync at runtime
+        # self.label.bind(pos=self._update_bg, size=self._update_bg)
+
         self.label.bind(size=self.label.setter('text_size'))  # Enable wrapping
         self.main_layout.add_widget(self.label)
 
+        print(self.label.size)
+
         self.add_widget(self.main_layout)
+
+    def update_font_size(self, instance, value):
+        self.label.font_size = instance.size[1] * 0.37
+        # self.label.line_height = instance.size[1]*0.013
+        self.label.text_size = value  # (width, height)
+        # self.label.text_size = (value[0], value[1]) # font_size specifies how large the text itself is, while texture_size refers to the actual rendered size of that text, including wrapping, line breaks, and visual padding.
+        # self.label.height = self.label.texture_size[1]
+
+    # def _update_bg(self, instance, value):
+    #     self._bg_rect.pos = instance.pos
+    #     self._bg_rect.size = instance.size
 
 class CourtWidget(BoxLayout):
     def __init__(self, app, **kwargs):
-        super().__init__(orientation='vertical', spacing=0, size_hint=(1, 0.1), pos_hint={"center_x":0.5, "center_y":0.5})
+        super().__init__(orientation='vertical', spacing=0, size_hint=(1, 0.15), pos_hint={"center_x":0.5, "center_y":0.5})
         self.app = app
         self.font_folder = os.path.join(os.path.dirname(__file__),"fonts")
 
         self.court_name = Label(text="Court", font_size=0.3 * self.size[1], size_hint=(1, 0.3), font_name = os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"), color = (0,0,0,1)) #### 35
         self.court_money = Label(text = f"{self.app.game.court}g", font_size=0.7 * self.size[1], size_hint=(1, 0.3), font_name = os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"), color = (0,0,0,1)) #### 60
-        self.bind(size = self.update_size)
+        self.bind(size = self.update_font_size)
         self.add_widget(self.court_name)
         self.add_widget(self.court_money)
 
@@ -777,7 +812,7 @@ class CourtWidget(BoxLayout):
         new_gold = self.app.game.court
         self.court_money.text = f"{new_gold}g"
 
-    def update_size(self, instance, value):
+    def update_font_size(self, instance, value):
         self.court_name.font_size = 0.3 * instance.size[1]
         self.court_money.font_size = 0.7 * instance.size[1]
 

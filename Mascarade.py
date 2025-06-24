@@ -1,4 +1,5 @@
-
+from kivy.config import Config
+Config.set('input', 'mouse', 'mouse,disable_multitouch')
 
 from kivy.core.window import Window
 from kivy.utils import platform
@@ -113,21 +114,34 @@ class GameApp(App):
 
         self.prev_maximized = is_now_maximized
 
-    ### Fix the position of the widgets inside the circle ( fixed 7, 8)
-    ### Add the card name when revealed
-    ### Add return button, pause button
-    ### Add rulebook
-    ### Limit name, fix information
-    ### Add empty widget to the layout
-    ### Scale the starting time with the number of players
-    ### Reset the changing cards to the victim of the swap cards
-    ### Scale the font size with the size of the window game
-    ### Shorten the name of the bot
-    ### Clear cache each game
+'''
+-Fix the position of the widgets inside the circle (fixed 7, 8)
+-Add the card name when revealed --C
+-Add return button, pause button
+-Add rulebook
+-Add empty widget to the layout
+-Scale the starting time with the number of players
+-Reset the changing cards to the victim of the swap cards
+-Scale the font size with the size of the window game:
+    +Fix the font of the Court --C
+    +Fix the font inside the widget
+        .Scale the font, let the font in two lines if it gets too long --C
+        .Counting the number of character (maybe control the capitalized character) so that if the text is short, keep it big in one line
+    +Limit the name
+    +Dont let some strange symbol goes to the name
+    +After done everything, delete the dummy long word in the swap action to fix it
+-Shorten the name of the bot
+-Clear cache each game --C
+-Fixing the problem where the game can have red dot
+-Fix the problem where the player num in the option is 3, while the game is automatically set to 4 player num
+-Fix the starting game time --C
+-After done everything, just fix the judge, the first limit to claim role
+'''
 
 
 
 if __name__ == '__main__':
+    # while True:
     app = GameApp()
     app.run()
 

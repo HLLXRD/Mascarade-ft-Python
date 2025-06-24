@@ -28,6 +28,8 @@ class MenuScreen(Screen):
         self.name = 'menu'
         self.app = app
 
+    def on_enter(self, *args):
+        self.clear_widgets()
         # Main layout
         layout = BoxLayout(orientation='vertical', spacing=20, padding=50)
 
@@ -76,8 +78,9 @@ class OptionsScreen(Screen):
         super().__init__(**kwargs)
         self.app = app
         self.name = 'options'
+    def on_enter(self, *args):
+        self.clear_widgets()
         self.player_num = 3  # Default number of players
-
         # Main layout
         layout = BoxLayout(orientation='vertical', spacing=20, padding=50)
 
@@ -129,12 +132,15 @@ class OptionsScreen(Screen):
 
 
 class OffNameScreen(Screen):
+
     def __init__(self,app, **kwargs):
         super().__init__(**kwargs)
         print(Window.size)
         self.app = app
         self.name = 'off_name_typing'
 
+    def on_enter(self, *args):
+        self.clear_widgets()
         #Get the layout
         name_layout = BoxLayout(size_hint=(1, 0.7))
 
@@ -164,9 +170,10 @@ class OffGameScreen(Screen):
         super().__init__(**kwargs)
         self.app = app
         self.name = 'off_game'
-        self.layout_initialized = False
+        # self.layout_initialized = False
 
-        #Start the turn-counting indices
+        #Start the turn-counting indices, also initialize the win condition
+
         self.play_turn_index = 0
         self.block_turn_index = 0
 
@@ -181,92 +188,92 @@ class OffGameScreen(Screen):
         self.swap_or_not_sidebar = None
 
     def on_pre_enter(self, **kwargs):
-        if not self.layout_initialized:
-            self.general_folder = os.path.join(os.path.dirname(__file__), "img_general")
-            self.layout = FloatLayout()
+        #Resert all the value that will be created later
+        self.clear_widgets()
+        self.win_condition = False
+        # if not self.layout_initialized:
+        self.general_folder = os.path.join(os.path.dirname(__file__), "img_general")
+        self.layout = FloatLayout()
 
-            self.background = Image(
-                                    source=os.path.join(self.general_folder,'ingame_background_cropped.jpg'),     # <- Replace with your image path
-                                    allow_stretch=True,
-                                    keep_ratio=False,
-                                    size_hint=(1, 1),
-                                    pos_hint={'x': 0, 'y': 0}
-                                )
-            self.layout.add_widget(self.background)
-
-
-            self.player_num = self.app.player_num
-            center_x = 0.5
-            center_y = 0.5
-            radius = 0.4
-            ratio = 1/(Window.width / Window.height)
-
-            for i in range(self.player_num):
-                angle = -pi / 2 + 2 * pi * i / self.player_num
-                if self.player_num == 8 :
-                    if i == 5 or i == 1:
-                        angle += pi/18
-                    elif i == 3 or i == 7:
-                        angle -= pi/18
-                if self.player_num == 7:
-                    if i == 1:
-                        angle += pi/18
-                    elif i == 6:
-                        angle -= pi/18
-                x = center_x + radius * cos(angle) * ratio
-                y = center_y + radius * sin(angle)
-
-                if angle == -pi / 2:
-                    position = "bottom"
-                elif angle == pi/2:
-                    position = "top"
-                elif -pi/2 < angle < pi/2:
-                    position = "right"
-                else:
-                    position = "left"
-
-                player_space = PlayerWidget(self, self.app.game.players_dict[i], position,
-                                            pos_hint={'center_x': x, 'center_y': y})
-
-                self.widgets_dict[i] = player_space
-                self.layout.add_widget(player_space)
-
-                # player_space.init_action()
-            #For the court
-            self.court_background = Image(
-                source=os.path.join(self.general_folder, 'court.png'),  # <- Replace with your image path
-                allow_stretch=True,
-                keep_ratio=True,
-                size_hint=(0.3, 0.3),
-                pos_hint={'center_x': 0.5, 'center_y': 0.5}
-            )
-            self.layout.add_widget(self.court_background)
-
-            self.court_widget = CourtWidget(self.app)
-            self.layout.add_widget(self.court_widget)
-            self.widgets_dict['court'] = self.court_widget
+        self.background = Image(
+                                source=os.path.join(self.general_folder,'ingame_background_cropped.jpg'),     # <- Replace with your image path
+                                allow_stretch=True,
+                                keep_ratio=False,
+                                size_hint=(1, 1),
+                                pos_hint={'x': 0, 'y': 0}
+                            )
+        self.layout.add_widget(self.background)
 
 
+        self.player_num = self.app.player_num
+        center_x = 0.5
+        center_y = 0.5
+        radius = 0.4
+        ratio = 1/(Window.width / Window.height)
 
-            #Init the hands on the widget
-            for i in self.widgets_dict:
-                if type(i) == int:
-                    self.widgets_dict[i].init_claim()
+        for i in range(self.player_num):
+            angle = -pi / 2 + 2 * pi * i / self.player_num
+            if self.player_num == 8 :
+                if i == 5 or i == 1:
+                    angle += pi/18
+                elif i == 3 or i == 7:
+                    angle -= pi/18
+            if self.player_num == 7:
+                if i == 1:
+                    angle += pi/18
+                elif i == 6:
+                    angle -= pi/18
+            x = center_x + radius * cos(angle) * ratio
+            y = center_y + radius * sin(angle)
+
+            if angle == -pi / 2:
+                position = "bottom"
+            elif angle == pi/2:
+                position = "top"
+            elif -pi/2 < angle < pi/2:
+                position = "right"
+            else:
+                position = "left"
+
+            player_space = PlayerWidget(self, self.app.game.players_dict[i], position,
+                                        pos_hint={'center_x': x, 'center_y': y})
+
+            self.widgets_dict[i] = player_space
+            self.layout.add_widget(player_space)
+
+            # player_space.init_action()
+        #For the court
+        self.court_background = Image(
+            source=os.path.join(self.general_folder, 'court.png'),  # <- Replace with your image path
+            allow_stretch=True,
+            keep_ratio=True,
+            size_hint=(0.3, 0.3),
+            pos_hint={'center_x': 0.5, 'center_y': 0.5}
+        )
+        self.layout.add_widget(self.court_background)
+
+        self.court_widget = CourtWidget(self.app)
+        self.layout.add_widget(self.court_widget)
+        self.widgets_dict['court'] = self.court_widget
 
 
-            #For the pause button
-            self.pause_button = Button(text="Pause", size_hint=(0.05,0.05), pos_hint={'right': 1})
-            self.pause_button.bind(on_press = self.pause )
-            self.add_widget(self.pause_button)
+
+        #Init the hands on the widget
+        for i in self.widgets_dict:
+            if type(i) == int:
+                self.widgets_dict[i].init_claim()
 
 
-            self.add_widget(self.layout)
-            self.layout_initialized = True
+        #For the pause button
+        self.pause_button = Button(text="Pause", size_hint=(0.05,0.05), pos_hint={'right': 1})
+        self.pause_button.bind(on_press = self.pause )
+        self.add_widget(self.pause_button)
 
-            # # Init the hands on the widget
-            # for i in self.widgets_dict:
-            #     if type(i) == int:
-            #         self.widgets_dict[i].pop_bubble_chat("Ohmni!")
+
+        self.add_widget(self.layout)
+        # self.layout_initialized = True
+
+
 
     def minimize_window(self, instance):
         Window.minimize()
@@ -293,7 +300,7 @@ class OffGameScreen(Screen):
             if type(i) == int:
                 self.widgets_dict[i].reveal_card()
                 Clock.schedule_once(self.widgets_dict[i].hide_card, 5 * self.player_num/4)
-        Clock.schedule_once(self.play_turn, 5.5)
+        Clock.schedule_once(self.play_turn, 5 * self.player_num/4 + 0.5)
 
     def play_turn(self, dt):
         ###Since the game.check() only to check after a claim
@@ -354,7 +361,12 @@ class OffGameScreen(Screen):
             #Resolve the claim phase, also update all the bots based on the revealed cards
             self.resolve_claim() # This need approaximately 1.8s to finish
 
-            if not (self.app.game.chars_dict[role_ID] in self.app.game.special_activate): #and self.app.game.affected_dict["status"] == 1): #If not the situation that the special activate is actually activated
+            if not (self.app.game.chars_dict[role_ID] in self.app.game.special_activate): #and self.app.game.affected_dict["status"] == 1): #
+                '''
+                The approach "if not the situation that the special activate is actually activated" will make the system trigger the Courtesan strangely.
+                Since the checking condition of the status is not triggering immediately but it waits for some sec (find the line Clock.schedule_once(lambda dt, p = player_ID, c = card_ID, r = role_ID, w = widget:update_claim(dt, p, c, r, w), 1.4))
+                This makes the status is not updated enough fast, so the activate of the special will be trigger as the normal beside its own method, this make the game bomboclaaat
+                '''
                 print("Complete claim due to normal role, not special!!!")
                 Clock.schedule_once(self.complete_claim, 2.1)
 
@@ -518,8 +530,10 @@ class OffGameScreen(Screen):
                 return
             elif 0 in check_result :  # You won
                 self.app.sm.current = "win_scene"
+                self.win_condition = True
             else:
                 self.app.sm.current = "lose_scene"
+                self.win_condition = True
         Clock.schedule_once(delayed_check_remove_hand, 2.3)
 
 
@@ -548,8 +562,14 @@ class OffGameScreen(Screen):
         # Update the UI, and also check if the win condition has met
         self.update_UI_and_check()  # This takes approximately 2.5s to fully completed
 
-        # Endturn, reduce the confidence
-        Clock.schedule_once(self.end_turn, 3)
+        def end_turn_check_win(dt): # If here, we wrap the endturn in the clock, not the entire condition-checking, it will get error since the update_UI_and_check require 2.3s to complete
+            if self.win_condition == True:
+                pass
+            else:
+                # Endturn, reduce the confidence
+                Clock.schedule_once(self.end_turn, 0)
+
+        Clock.schedule_once(end_turn_check_win, 3)
 
 
     def end_turn(self, dt):
@@ -668,6 +688,8 @@ class WinScene(Screen):
 
     def return_to_menu(self, instance):
         self.app.sm.current = "menu"
+
+
 
 
 class LoseScene(Screen):
