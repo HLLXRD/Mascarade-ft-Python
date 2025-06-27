@@ -16,6 +16,7 @@ from kivy.core.window import Window
 import os
 import random
 import pyglet
+import copy
 
 from .player_and_action import char_selected, swap
 
@@ -24,52 +25,203 @@ from .player_and_action import char_selected, swap
 class ClickableImage(ButtonBehavior, Image):
     pass
 
-class ActionSidebar(BoxLayout):
+class ActionSidebar(FloatLayout):
     background_color = ListProperty([0.2, 0.2, 0.2, 0.9])
 
     def __init__(self, game_screen, player_ID, **kwargs):
-        super().__init__(orientation='vertical',
-                         size_hint=(0.3, 1),
+        super().__init__(size_hint=(0.3, 1),
                          pos_hint={'right': 1},
                          **kwargs)
+        #Take the general folder
+        self.img_general_folder = os.path.join(os.path.dirname(__file__), "img_general")
+        self.font_folder = os.path.join(os.path.dirname(__file__), "fonts")
 
         self.game_screen = game_screen
         self.player_ID = player_ID
         self.player = self.game_screen.app.game.players_dict[self.player_ID]
 
-        # Transparent-ish background
-        with self.canvas.before:
-            Color(*self.background_color)
-            self.rect = Rectangle(size=self.size, pos=self.pos)
+        self.background_path = os.path.join(self.img_general_folder, "sidebar_background.png")
+        print(self.background_path)
+        self.background = Image(source=self.background_path, pos_hint={'center_x': 0.5, "center_y": 0.5},
+                                size_hint=(1, 1), allow_stretch=True, keep_ratio=False)
+        self.add_widget(self.background)
+        # # Transparent-ish background
+        # with self.canvas.before:
+        #     Color(*self.background_color)
+        #     self.rect = Rectangle(size=self.size, pos=self.pos)
+        #
+        # self.bind(size=self._update_rect, pos=self._update_rect)
+        self.main_layout = BoxLayout(orientation='vertical', size_hint=(1, 1), pos_hint={'center_x': 0.5, "center_y": 0.5})
 
-        self.bind(size=self._update_rect, pos=self._update_rect)
+        # # Title
+        # title = Label(text="Your Turn", font_size=24, size_hint=(1, 0.1))
+        # self.main_layout.add_widget(title)
+        # Add background
 
-        # Title
-        title = Label(text="Your Turn", font_size=24, size_hint=(1, 0.1))
-        self.add_widget(title)
+        #########Test Title#######
+        self.title = Label(text = "Your move, noble one. What shall it be?",
+                           font_size = self.size[1]//(12402/575),
+                           halign='center',
+                           valign='center',
+                           font_name = os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+                           color = [192/255, 135/255, 74/255, 1],
+                           pos_hint={'center_x': 0.5, "center_y": 593/689}, ## ADJUST LATER
+                           size_hint = (278/399, 88/689)
+                           )
+        print(self.title.pos_hint)
+        self.title_shade = Label(text="Your move, noble one. What shall it be?",
+                           font_size=self.size[1] // (12402 / 575),
+                           halign='center',
+                           valign='center',
+                           font_name=os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+                           color=[116 / 255, 47 / 255, 6 / 255, 1],
+                           pos_hint={'center_x': self.title.pos_hint["center_x"] * (1-18/995), 'center_y': self.title.pos_hint["center_y"] * (1-1/150)},  ## ADJUST LATER
+                           size_hint=(278 / 399, 88 / 689)
+                           )
+        print(self.title.pos_hint["center_x"] * (1-4/995), self.title.pos_hint["center_y"] * (1-1/24))
+
+        self.title.text_size = self.title.size
+
+        self.title.bind(size = self.update_title_font)
+        self.title_shade.bind(size=self.update_title_shade_font)
+
+        self.add_widget(self.title_shade)
+        self.add_widget(self.title)
+
+
+
+        ############################
 
         # Action buttons
-        swap_btn = Button(text="Swap Cards", font_size=18, size_hint=(1, 0.15))
-        swap_btn.bind(on_press=self.on_swap_cards)
-        self.add_widget(swap_btn)
+        # swap_btn = Button(text="Swap", font_size=18, size_hint=(1, 0.15))
+        # swap_btn.bind(on_press=self.on_swap_cards)
+        # self.main_layout.add_widget(swap_btn)
+        # Swap buttons
+        self.swap_btn_img = ClickableImage(
+                          size_hint  =(268/399, 9/53),
+                          source = os.path.join(self.img_general_folder, "best_frame.png"),
+                          pos_hint = {"center_x": 0.5, "center_y": 913/1378},
+                          keep_ratio = False,
+                          allow_stretch = True)
+        self.swap_btn_label = Label(text="Swap",
+                                    font_size=self.size[1] * 28/23 // (12402/575),
+                                    font_name = os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+                                    size_hint  =(268/399, 9/53),
+                                    pos_hint = {"center_x": 0.5, "center_y": 913 / 1378},
+                                    valign='center',
+                                    halign='center',
+                                    color = [192/255, 135/255, 74/255, 1])
+        self.swap_btn_label.text_size = self.swap_btn_label.size
 
-        look_btn = Button(text="Peek at Card", font_size=18, size_hint=(1, 0.15))
-        look_btn.bind(on_press=self.on_look_at_card)
-        self.add_widget(look_btn)
+
+        self.swap_btn_img.bind(on_press=self.on_swap_cards, size = lambda instance, value, pos = 0: self.update_button_img(instance,value, pos))
+        self.swap_btn_label.bind(size= self.update_button_label)
+
+        self.add_widget(self.swap_btn_img)
+        self.add_widget(self.swap_btn_label)
+
+
+
 
         # If the revealed is 0 and the total turns played are more than 2, show the claim
         # if self.player.revealed == 0 and self.game_screen.play_turn_index > 2:
-        claim_btn = Button(text="Claim Role", font_size=18, size_hint=(1, 0.15))
-        claim_btn.bind(on_press=self.on_claim_role)
-        self.add_widget(claim_btn)
+        #Claim button
+        self.claim_btn_img = ClickableImage(
+            size_hint=(268 / 399, 9 / 53),
+            source=os.path.join(self.img_general_folder, "best_frame.png"),
+            pos_hint={"center_x": 0.5, "center_y": 913 / 1378 - 7000/ 35139},
+            keep_ratio=False,
+            allow_stretch=True)
+        self.claim_btn_label = Label(text="Claim",
+                                    font_size=self.size[1] * 28 / 23 // (12402 / 575),
+                                    font_name=os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+                                    size_hint=(268 / 399, 9 / 53),
+                                    pos_hint={"center_x": 0.5, "center_y": 913 / 1378 - 7000/ 35139},
+                                    valign='center',
+                                    halign='center',
+                                    color=[192 / 255, 135 / 255, 74 / 255, 1])
+        self.claim_btn_label.text_size = self.claim_btn_label.size
+
+        self.claim_btn_img.bind(on_press=self.on_claim_role, size = lambda instance, value, pos = 7000/ 35139: self.update_button_img(instance,value, pos))
+        self.claim_btn_label.bind(size=self.update_button_label)
+
+        self.add_widget(self.claim_btn_img)
+        self.add_widget(self.claim_btn_label)
+
+        #Peek button
+        self.peek_btn_img = ClickableImage(
+            size_hint=(268 / 399, 9 / 53),
+            source=os.path.join(self.img_general_folder, "best_frame.png"),
+            pos_hint={"center_x": 0.5, "center_y": 913 / 1378 - 7000/ 35139},
+            keep_ratio=False,
+            allow_stretch=True)
+        self.peek_btn_label = Label(text="Peek cards",
+                                     font_size=self.size[1] * 28 / 23 // (12402 / 575),
+                                     font_name=os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+                                     size_hint=(268 / 399, 9 / 53),
+                                     pos_hint={"center_x": 0.5, "center_y": 913 / 1378 - 2 * 7000/ 35139},
+                                     valign='center',
+                                     halign='center',
+                                     color=[192 / 255, 135 / 255, 74 / 255, 1])
+        self.peek_btn_label.text_size = self.peek_btn_label.size
+
+        self.peek_btn_img.bind(on_press=self.on_look_at_card,
+                                size=lambda instance, value, pos=2 * 7000/ 35139: self.update_button_img(instance, value,
+                                                                                                      pos))
+        self.peek_btn_label.bind(size=self.update_button_label)
+
+        self.add_widget(self.peek_btn_img)
+        self.add_widget(self.peek_btn_label)
+
+        #Roll back button
+        self.rollback_btn_img = ClickableImage(
+            size_hint=(61/399,61/689),
+            source=os.path.join(self.img_general_folder, "return_button_flip.png"),
+            pos_hint={"center_x": 0.5, "center_y": 137/1378},
+            keep_ratio=False,
+            allow_stretch=True)
+
+        self.rollback_btn_img.bind(on_press=self.on_rollback_sidebar)
+        self.add_widget(self.rollback_btn_img)
+
+        #Rollback again button
+        self.rollback_again_btn_img = ClickableImage(
+            size_hint=(61/1333,61/689),
+            source=os.path.join(self.img_general_folder, "return_button.png"),
+            pos_hint={"center_x": 1 - 99/1378, "center_y": 0.5 },
+            keep_ratio=False,
+            allow_stretch=True)
+
+        self.rollback_again_btn_img.bind(on_press=self.on_rollback_again_sidebar)
+
 
         # Spacer
-        self.add_widget(Label(text="", size_hint=(1, 0.3)))
+        # self.main_layout.add_widget(Label(text="", size_hint=(1, 0.3)))
+
+        # Add the boxlayout into the FloatLayout
+        # self.add_widget(self.main_layout)
 
         # # End turn button
         # end_turn_btn = Button(text="End Turn", font_size=20, size_hint=(1, 0.15))
         # end_turn_btn.bind(on_press=self.on_end_turn)
         # self.add_widget(end_turn_btn)
+    def update_title_font(self, instance, value):
+        self.title.font_size = self.size[1]//(12402/575)
+        self.title.text_size = self.title.size
+
+    def update_title_shade_font(self, instance, value):
+        self.title_shade.font_size = self.size[1] // (12402 / 575)
+        self.title_shade.text_size = self.title_shade.size
+        self.title_shade.pos_hint = {'center_x': self.title.pos_hint["center_x"] * (1-18/995), 'center_y': self.title.pos_hint["center_y"] * (1-1/150)} #'center_x': self.title.pos_hint["center_x"] * (1-4/995) #'center_y': self.title.pos_hint["center_y"] * (1-1/24)
+
+    def update_button_img (self, instance, value, pos):
+        instance.size_hint = (268/399, 9/53)
+        instance.pos_hint = {"center_x": 0.5, "center_y": 913/1378 - pos}
+    def update_button_label(self, instance, value):
+        instance.font_size = self.size[1] * 28/23 // (12402/575)  # Since the font of the button size 28 and the font of the title is 23
+        instance.text_size = instance.size
+
+
 
     def _update_rect(self, instance, value):
         self.rect.pos = instance.pos
@@ -101,6 +253,22 @@ class ActionSidebar(BoxLayout):
         print("Player chose: Claim Role")
         # Add your claim role logic here
         self.game_screen.call_for_choose_char()
+
+    def on_rollback_sidebar(self, instance):
+        if self.game_screen.sidebar and self.game_screen.sidebar.parent:
+            self.game_screen.layout.remove_widget(self.game_screen.sidebar)
+            self.game_screen.sidebar = None
+        if not self.rollback_again_btn_img.parent:
+            self.game_screen.add_widget(self.rollback_again_btn_img)
+
+
+    def on_rollback_again_sidebar(self, instance):
+        self.game_screen.call_for_decision(self.player_ID)
+
+        self.game_screen.remove_widget(self.rollback_again_btn_img)
+
+
+
 
     # def on_end_turn(self, instance):
     #     print("Player chose: End Turn")

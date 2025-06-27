@@ -23,7 +23,7 @@ class GameApp(App):
         super().__init__(**kwargs)
         self.prev_maximized = False
         ####
-        self.player_num = 4  # default
+        self.player_num = 3  # default
         self.game = None
 
         #Screens
@@ -120,7 +120,7 @@ class GameApp(App):
 -Add return button, pause button
 -Add rulebook
 -Add empty widget to the layout
--Scale the starting time with the number of players
+-Scale the starting time with the number of players --C
 -Reset the changing cards to the victim of the swap cards
 -Scale the font size with the size of the window game:
     +Fix the font of the Court --C
@@ -132,10 +132,11 @@ class GameApp(App):
     +After done everything, delete the dummy long word in the swap action to fix it
 -Shorten the name of the bot
 -Clear cache each game --C
--Fixing the problem where the game can have red dot
--Fix the problem where the player num in the option is 3, while the game is automatically set to 4 player num
+-Fixing the problem where the game can have red dot --C
+-Fix the problem where the player num in the option is 3, while the game is automatically set to 4 player num --C
 -Fix the starting game time --C
 -After done everything, just fix the judge, the first limit to claim role
+-Fixing the problem that when the first time set up kivy, the game screen is not maximized, why?
 '''
 
 

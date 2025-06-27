@@ -96,7 +96,7 @@ class OptionsScreen(Screen):
         player_layout.add_widget(self.player_label)
 
         # Player count slider
-        self.player_slider = Slider(min=3, max=9, step=1, size_hint=(1, 0.3))
+        self.player_slider = Slider(min=3, max=8, step=1, size_hint=(1, 0.3))
         self.player_slider.bind(value=self.on_player_count_change)
         player_layout.add_widget(self.player_slider)
 
@@ -651,7 +651,6 @@ class OffGameScreen(Screen):
         if self.sidebar and self.sidebar.parent:
             self.layout.remove_widget(self.sidebar)
             self.sidebar = None
-
         # Hide character selection sidebar
         if self.char_sidebar and self.char_sidebar.parent:
             self.layout.remove_widget(self.char_sidebar)

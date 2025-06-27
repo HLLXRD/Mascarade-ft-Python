@@ -276,7 +276,7 @@ class Game:
 ###The decide function hasn't had the cross-decide: When a player with the high confidence and/or high probability try to block a claimation, the bot will stop trying to block it, too
 ###The action decide player hasnt considered whether the claim affects their money or not, if a call is useless, maybe they should peek or swap (bishop's or widow's case)
 if __name__ == "__main__":
-    game=Game(player_num=4, human = 1)
+    game=Game(player_num=3, human = 1)
     game.take_player_names(["hohoho!"])
     game.game_build()
     game.history.append({"mode": 0, "agent": 1, "patient": 2})
