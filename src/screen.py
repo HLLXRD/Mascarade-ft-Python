@@ -27,36 +27,104 @@ class MenuScreen(Screen):
         super().__init__(**kwargs)
         self.name = 'menu'
         self.app = app
+        self.image_general_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'img_general')
 
     def on_enter(self, *args):
         self.clear_widgets()
+        self.image_general_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'img_general')
+        self.font_folder = os.path.join(os.path.dirname(__file__), "fonts")
         # Main layout
-        layout = BoxLayout(orientation='vertical', spacing=20, padding=50)
+        self.main_layout = FloatLayout()
+        self.background = Image(source = os.path.join(self.image_general_folder, 'background_menu.png'),
+                                size_hint = (1,1),
+                                pos_hint = {'center_x': 0.5, 'center_y': 0.5},
+                                keep_ratio=False,
+                                allow_stretch=True
+                                )
 
-        # Game title
-        title = Label(text='My Game', font_size=48, size_hint=(1, 0.3))
-        layout.add_widget(title)
+        self.main_layout.add_widget(self.background)
 
-        # Buttons layout
-        button_layout = BoxLayout(orientation='vertical', spacing=15, size_hint=(1, 0.7))
+
+
+        self.label_img = Image(source = os.path.join(self.image_general_folder, 'title_font.png'), size_hint = (1033/1333,193/750), pos_hint = {'center_x': 0.5, 'center_y': 209/300})
+        self.main_layout.add_widget(self.label_img)
+
+
+        # layout = BoxLayout(orientation='vertical', spacing=20, padding=50)
+
 
         # Start Game button
-        start_btn = Button(text='Start Game',bold=True, font_size=24, size_hint=(1, 0.2))
-        start_btn.bind(on_press=self.start_game)
-        button_layout.add_widget(start_btn)
+        self.start_btn = FloatLayout(size_hint = (494/ 1333,21/125), pos_hint = {'center_x': 925/1333, 'center_y': 178/375})
 
-        # Options button
-        options_btn = Button(text='Options', font_size=24, size_hint=(1, 0.2))
-        options_btn.bind(on_press=self.go_to_options)
-        button_layout.add_widget(options_btn)
+        self.start_btn_img = ClickableImage(
+            source = os.path.join(self.image_general_folder, 'button.png'),
+            size_hint = (1,1),
+            pos_hint = {'center_x': 0.5, 'center_y': 0.5},
+            allow_stretch=True,
+            keep_ratio=False
+        )
 
-        # Exit button
-        exit_btn = Button(text='Exit', font_size=24, size_hint=(1, 0.2))
-        exit_btn.bind(on_press=self.exit_game)
-        button_layout.add_widget(exit_btn)
+        self.start_btn_img.bind(on_press=self.start_game)
 
-        layout.add_widget(button_layout)
-        self.add_widget(layout)
+        self.start_btn_text = Label(text = "Start game", font_size = self.size[1] // (12402/575) * 36/23, size_hint = (1,1), pos_hint = {'center_x': 0.5, 'center_y': 0.5}, valign = "center", halign = "center", font_name = os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),color=[192 / 255, 135 / 255, 74 / 255, 1])
+        self.start_btn_text.bind(size = self.update_font_size)
+
+        self.start_btn.add_widget(self.start_btn_img)
+        self.start_btn.add_widget(self.start_btn_text)
+
+        # Option button
+        self.option_btn = FloatLayout(size_hint=(494 / 1333, 21 / 125),
+                                     pos_hint={'center_x': 925 / 1333, 'center_y': 217/750})
+
+        self.option_btn_img = ClickableImage(
+            source=os.path.join(self.image_general_folder, 'button.png'),
+            size_hint=(1, 1),
+            pos_hint={'center_x': 0.5, 'center_y': 0.5},
+            allow_stretch=True,
+            keep_ratio=False
+        )
+
+        self.option_btn_img.bind(on_press=self.go_to_options)
+
+        self.option_btn_text = Label(text="Option", font_size=self.size[1] // (12402 / 575) * 36 / 23, size_hint=(1, 1),
+                                    pos_hint={'center_x': 0.5, 'center_y': 0.5}, valign = "center", halign = "center", font_name = os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+                                     color=[192 / 255, 135 / 255, 74 / 255, 1])
+        self.option_btn_text.bind(size=self.update_font_size)
+
+        self.option_btn.add_widget(self.option_btn_img)
+        self.option_btn.add_widget(self.option_btn_text)
+
+        #Exit
+        self.exit_btn = FloatLayout(size_hint=(494 / 1333, 21 / 125),
+                                     pos_hint={'center_x': 925 / 1333, 'center_y': 77 / 750})
+
+        self.exit_btn_img = ClickableImage(
+            source=os.path.join(self.image_general_folder, 'button.png'),
+            size_hint=(1, 1),
+            pos_hint={'center_x': 0.5, 'center_y': 0.5},
+            allow_stretch=True,
+            keep_ratio=False
+        )
+
+        self.exit_btn_img.bind(on_press=self.exit_game)
+
+        self.exit_btn_text = Label(text="Start game", font_size=self.size[1] // (12402 / 575) * 36 / 23, size_hint=(1, 1),
+                                    pos_hint={'center_x': 0.5, 'center_y': 0.5}, valign = "center", halign = "center", font_name = os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+                                   color=[192 / 255, 135 / 255, 74 / 255, 1])
+        self.exit_btn_text.bind(size=self.update_font_size)
+
+        self.exit_btn.add_widget(self.exit_btn_img)
+        self.exit_btn.add_widget(self.exit_btn_text)
+
+
+        self.main_layout.add_widget(self.start_btn)
+        self.main_layout.add_widget(self.option_btn)
+        self.main_layout.add_widget(self.exit_btn)
+
+        self.add_widget(self.main_layout)
+
+
+
 
     def start_game(self, instance):
         print("Starting game...")
@@ -71,6 +139,13 @@ class MenuScreen(Screen):
 
     def exit_game(self, instance):
         App.get_running_app().stop()
+
+    def update_font_size(self,instance, value):
+        instance.font_size = self.size[1] // (12402/575) * 36/23
+        instance.text_size = instance.size
+        instance.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
+
+
 
 
 class OptionsScreen(Screen):
@@ -626,7 +701,7 @@ class OffGameScreen(Screen):
             self.layout.add_widget(self.sidebar)
     def call_for_choose_char(self):
         if self.char_sidebar is None:
-            self.char_sidebar = CharSelectingSidebar(self, "Who are you?", "claim")
+            self.char_sidebar = CharSelectingSidebar(self, "claim")
         if self.char_sidebar.parent is None:
             self.layout.add_widget(self.char_sidebar)
     def call_for_block(self, first_ID, role_ID):
@@ -634,13 +709,26 @@ class OffGameScreen(Screen):
             self.block_sidebar = BlockSelectingSidebar(self, first_ID, role_ID)
         if self.block_sidebar.parent is None:
             self.layout.add_widget(self.block_sidebar)
-    def call_for_choose_player(self, mode):
+    def call_for_choose_player(self, mode, *args):
+        if len(args) == 0: # We only remove the sidebar (ActionSideBar) if it is not a rollback call
+            if self.sidebar.parent is not None:
+                self.layout.remove_widget(self.sidebar)
+            if self.sidebar is not None:
+                self.sidebar = None
+
         if self.player_sidebar is None:
             self.player_sidebar = PlayerSelectingSidebar(self, mode)
         if self.player_sidebar.parent is None:
             self.layout.add_widget(self.player_sidebar)
 
-    def call_for_swap_or_not(self, agent_ID, patient_ID):
+
+    def call_for_swap_or_not(self, agent_ID, patient_ID, *args):
+        if len(args) == 0: # We only remove the player_sidebar if it is not a rollback call
+            if self.player_sidebar.parent is not None:
+                self.layout.remove_widget(self.player_sidebar)
+            if self.player_sidebar is not None:
+                print("debug")
+                self.player_sidebar = None
         if self.swap_or_not_sidebar is None:
             self.swap_or_not_sidebar = SwapOrNotSidebar(self, agent_ID, patient_ID)
         if self.swap_or_not_sidebar.parent is None:

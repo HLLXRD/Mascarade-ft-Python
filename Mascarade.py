@@ -121,7 +121,7 @@ class GameApp(App):
 -Add rulebook
 -Add empty widget to the layout
 -Scale the starting time with the number of players --C
--Reset the changing cards to the victim of the swap cards
+-Reset the changing cards to the victim of the swap cards --C
 -Scale the font size with the size of the window game:
     +Fix the font of the Court --C
     +Fix the font inside the widget
@@ -137,6 +137,8 @@ class GameApp(App):
 -Fix the starting game time --C
 -After done everything, just fix the judge, the first limit to claim role
 -Fixing the problem that when the first time set up kivy, the game screen is not maximized, why?
+-Fix the font on the sidebar, kinda hard to read it
+-Add more music to it
 '''
 
 

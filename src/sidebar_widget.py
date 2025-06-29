@@ -33,14 +33,14 @@ class ActionSidebar(FloatLayout):
                          pos_hint={'right': 1},
                          **kwargs)
         #Take the general folder
-        self.img_general_folder = os.path.join(os.path.dirname(__file__), "img_general")
+        self.img_action_folder = os.path.join(os.path.dirname(__file__), "img_actions/sidebar")
         self.font_folder = os.path.join(os.path.dirname(__file__), "fonts")
 
         self.game_screen = game_screen
         self.player_ID = player_ID
         self.player = self.game_screen.app.game.players_dict[self.player_ID]
 
-        self.background_path = os.path.join(self.img_general_folder, "sidebar_background.png")
+        self.background_path = os.path.join(self.img_action_folder, "sidebar_background.png")
         print(self.background_path)
         self.background = Image(source=self.background_path, pos_hint={'center_x': 0.5, "center_y": 0.5},
                                 size_hint=(1, 1), allow_stretch=True, keep_ratio=False)
@@ -78,7 +78,7 @@ class ActionSidebar(FloatLayout):
                            pos_hint={'center_x': self.title.pos_hint["center_x"] * (1-18/995), 'center_y': self.title.pos_hint["center_y"] * (1-1/150)},  ## ADJUST LATER
                            size_hint=(278 / 399, 88 / 689)
                            )
-        print(self.title.pos_hint["center_x"] * (1-4/995), self.title.pos_hint["center_y"] * (1-1/24))
+        self.title_shade.shade_of = self.title
 
         self.title.text_size = self.title.size
 
@@ -99,7 +99,7 @@ class ActionSidebar(FloatLayout):
         # Swap buttons
         self.swap_btn_img = ClickableImage(
                           size_hint  =(268/399, 9/53),
-                          source = os.path.join(self.img_general_folder, "best_frame.png"),
+                          source = os.path.join(self.img_action_folder, "best_frame.png"),
                           pos_hint = {"center_x": 0.5, "center_y": 913/1378},
                           keep_ratio = False,
                           allow_stretch = True)
@@ -128,7 +128,7 @@ class ActionSidebar(FloatLayout):
         #Claim button
         self.claim_btn_img = ClickableImage(
             size_hint=(268 / 399, 9 / 53),
-            source=os.path.join(self.img_general_folder, "best_frame.png"),
+            source=os.path.join(self.img_action_folder, "best_frame.png"),
             pos_hint={"center_x": 0.5, "center_y": 913 / 1378 - 7000/ 35139},
             keep_ratio=False,
             allow_stretch=True)
@@ -151,7 +151,7 @@ class ActionSidebar(FloatLayout):
         #Peek button
         self.peek_btn_img = ClickableImage(
             size_hint=(268 / 399, 9 / 53),
-            source=os.path.join(self.img_general_folder, "best_frame.png"),
+            source=os.path.join(self.img_action_folder, "best_frame.png"),
             pos_hint={"center_x": 0.5, "center_y": 913 / 1378 - 7000/ 35139},
             keep_ratio=False,
             allow_stretch=True)
@@ -176,7 +176,7 @@ class ActionSidebar(FloatLayout):
         #Roll back button
         self.rollback_btn_img = ClickableImage(
             size_hint=(61/399,61/689),
-            source=os.path.join(self.img_general_folder, "return_button_flip.png"),
+            source=os.path.join(self.img_action_folder, "return_button_flip.png"),
             pos_hint={"center_x": 0.5, "center_y": 137/1378},
             keep_ratio=False,
             allow_stretch=True)
@@ -187,7 +187,7 @@ class ActionSidebar(FloatLayout):
         #Rollback again button
         self.rollback_again_btn_img = ClickableImage(
             size_hint=(61/1333,61/689),
-            source=os.path.join(self.img_general_folder, "return_button.png"),
+            source=os.path.join(self.img_action_folder, "return_button.png"),
             pos_hint={"center_x": 1 - 99/1378, "center_y": 0.5 },
             keep_ratio=False,
             allow_stretch=True)
@@ -206,13 +206,13 @@ class ActionSidebar(FloatLayout):
         # end_turn_btn.bind(on_press=self.on_end_turn)
         # self.add_widget(end_turn_btn)
     def update_title_font(self, instance, value):
-        self.title.font_size = self.size[1]//(12402/575)
-        self.title.text_size = self.title.size
+        instance.font_size = self.size[1]//(12402/575)
+        instance.text_size = instance.size
 
     def update_title_shade_font(self, instance, value):
-        self.title_shade.font_size = self.size[1] // (12402 / 575)
-        self.title_shade.text_size = self.title_shade.size
-        self.title_shade.pos_hint = {'center_x': self.title.pos_hint["center_x"] * (1-18/995), 'center_y': self.title.pos_hint["center_y"] * (1-1/150)} #'center_x': self.title.pos_hint["center_x"] * (1-4/995) #'center_y': self.title.pos_hint["center_y"] * (1-1/24)
+        instance.font_size = self.size[1] // (12402 / 575)
+        instance.text_size = instance.size
+        instance.pos_hint = {'center_x': instance.shade_of.pos_hint["center_x"] * (1-18/995), 'center_y': instance.shade_of.pos_hint["center_y"] * (1-1/150)} #'center_x': self.title.pos_hint["center_x"] * (1-4/995) #'center_y': self.title.pos_hint["center_y"] * (1-1/24)
 
     def update_button_img (self, instance, value, pos):
         instance.size_hint = (268/399, 9/53)
@@ -230,6 +230,7 @@ class ActionSidebar(FloatLayout):
     def on_swap_cards(self, instance):
         print("Player chose: Swap Cards")
         # Add your swap cards logic here
+        print(self.game_screen.size)
         self.game_screen.call_for_choose_player('swap')
     def on_look_at_card(self, instance):
         print("Player chose: Peek at Card")
@@ -274,10 +275,10 @@ class ActionSidebar(FloatLayout):
     #     print("Player chose: End Turn")
     #     # Add your end turn logic here=  # Hide sidebar after action
 
-class CharSelectingSidebar(BoxLayout):
+class CharSelectingSidebar(FloatLayout):
     background_color = ListProperty([0.2, 0.2, 0.2, 1])
-    def __init__(self, game_screen , label, mode,  player_ID = 0, **kwargs):
-        super().__init__(orientation='vertical',
+    def __init__(self, game_screen , mode,  player_ID = 0, **kwargs):
+        super().__init__(
                          size_hint=(0.3, 1),
                          pos_hint={'right': 1},
                          **kwargs)
@@ -285,8 +286,24 @@ class CharSelectingSidebar(BoxLayout):
         self.mode = mode
         self.game_screen = game_screen
         self.character_dict = self.game_screen.app.game.chars_dict
-        self.label = label
         self.player_ID = player_ID
+
+        # Take the general folder
+        self.img_action_folder = os.path.join(os.path.dirname(__file__), "img_actions/sidebar")
+        self.font_folder = os.path.join(os.path.dirname(__file__), "fonts")
+
+        self.background_path = os.path.join(self.img_action_folder, "sidebar_background.png")
+        print(self.background_path)
+        self.background = Image(source=self.background_path, pos_hint={'center_x': 0.5, "center_y": 0.5},
+                                size_hint=(1, 1), allow_stretch=True, keep_ratio=False)
+        self.add_widget(self.background)
+
+        self.mask_revealed_path = os.path.join(self.img_action_folder, "mask_revealed.png")
+        self.mask_revealed = Image(source = self.mask_revealed_path,
+                                  pos_hint = {'center_x': 0.5, "center_y": 245/689},
+                                  size_hint = (320/399,426/689),
+                                   allow_stretch=True, keep_ratio=False, opacity = 0.59)
+        self.add_widget(self.mask_revealed)
 
         self.mode_actions_dict = {
             "claim": char_selected
@@ -295,22 +312,48 @@ class CharSelectingSidebar(BoxLayout):
         }
 
         # Transparent-ish background
-        with self.canvas.before:
-            Color(*self.background_color)
-            self.rect = Rectangle(size=self.size, pos=self.pos)
 
-        self.bind(size=self._update_rect, pos=self._update_rect)
-
+        self.title_action_dict = {
+            "claim": "Show yourself, lord. Who hides beneath that gilded mask?"
+        }
         # Title
-        title = Label(text=self.label, font_size=24, size_hint=(1, 0.1))
-        self.add_widget(title)
+        self.title = Label(text=self.title_action_dict[mode],
+                           font_size=self.size[1] // (12402 / 575),
+                           halign='center',
+                           valign='center',
+                           font_name=os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+                           color=[192 / 255, 135 / 255, 74 / 255, 1],
+                           pos_hint={'center_x': 0.5, "center_y": 573 / 689},  ## ADJUST LATER
+                           size_hint=(278 / 399, 126 / 689)
+                           )
+        print(self.title.pos_hint)
+        self.title_shade = Label(text=self.title_action_dict[mode],
+                                 font_size=self.size[1] // (12402 / 575),
+                                 halign='center',
+                                 valign='center',
+                                 font_name=os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+                                 color=[116 / 255, 47 / 255, 6 / 255, 1],
+                                 pos_hint={'center_x': self.title.pos_hint["center_x"] * (1 - 18 / 995),
+                                           'center_y': self.title.pos_hint["center_y"] * (1 - 1 / 150)},
+                                 ## ADJUST LATER
+                                 size_hint=self.title.size_hint
+                                 )
+        self.title_shade.shade_of = self.title
+
+        self.title.text_size = self.title.size
+
+        self.title.bind(size=self.update_title_font)
+        self.title_shade.bind(size=self.update_title_shade_font)
+
+        self.add_widget(self.title_shade)
+        self.add_widget(self.title)
 
         # Scroll
-        scroll = ScrollView(size_hint=(1, 0.8), do_scroll_x=False)
+        scroll = ScrollView(size_hint=(109/133, 320/689), do_scroll_x=False, pos_hint = {"center_x": 0.5, "center_y": 304/689})
 
         # Add the layout grid
-        layout = GridLayout(cols=1, spacing=20,padding=[10, 10, 10, 10], size_hint_y=None)
-        layout.bind(minimum_height=layout.setter('height'))
+        layout = GridLayout(cols=1, spacing=17/689 * self.size[1],padding=[0,0,0,0], size_hint_y=None)
+        layout.bind(minimum_height=layout.setter('height'), size = self.update_spacing)
 
         img_folder = os.path.join(os.path.dirname(__file__), 'img_chars')
         for i in self.character_dict:
@@ -318,12 +361,12 @@ class CharSelectingSidebar(BoxLayout):
             img = ClickableImage(
                 source=path,
                 size_hint_y=None,
-                height = 150,
+                height = 91 / 689 * self.size[1],
                 allow_stretch=True,
                 keep_ratio=False
             )
             print(path)
-            img.bind(on_press=lambda instance, char_ID=i, player_ID = self.player_ID: self.mode_actions_dict[self.mode](instance, player_ID,char_ID, self.game_screen)) # We have to use the char_id since if we don't, the lambda will look for i until the loop is done, do it so that the i is passed when the lambda is created (by value, not by reference)
+            img.bind(on_press=lambda instance, char_ID=i, player_ID = self.player_ID: self.mode_actions_dict[self.mode](instance, player_ID,char_ID, self.game_screen), size = self.update_button_height) # We have to use the char_id since if we don't, the lambda will look for i until the loop is done, do it so that the i is passed when the lambda is created (by value, not by reference)
             # Add just-created widget into the grid layout
             layout.add_widget(img)
 
@@ -333,17 +376,51 @@ class CharSelectingSidebar(BoxLayout):
         # Add the scroll to the total layout
         self.add_widget(scroll)
 
+        # Roll back button
+        self.rollback_btn_img = ClickableImage(
+            size_hint=(61 / 399, 61 / 689),
+            source=os.path.join(self.img_action_folder, "return_button_flip.png"),
+            pos_hint={"center_x": 0.5, "center_y": 137 / 1378},
+            keep_ratio=False,
+            allow_stretch=True)
+
+        self.rollback_btn_img.bind(on_press=self.on_rollback_sidebar)
+        self.add_widget(self.rollback_btn_img)
+
 
     def _update_rect(self, instance, value):
         self.rect.pos = instance.pos
         self.rect.size = instance.size
 
-class PlayerSelectingSidebar(BoxLayout):
+    def update_title_font(self, instance, value):
+        instance.font_size = self.size[1]//(12402/575)
+        instance.text_size = instance.size
+
+    def update_title_shade_font(self, instance, value):
+        instance.font_size = self.size[1] // (12402 / 575)
+        instance.text_size = instance.size
+        instance.pos_hint = {'center_x': instance.shade_of.pos_hint["center_x"] * (1-18/995), 'center_y': instance.shade_of.pos_hint["center_y"] * (1-1/150)} #'center_x': self.title.pos_hint["center_x"] * (1-4/995) #'center_y': self.title.pos_hint["center_y"] * (1-1/24)
+
+    def update_spacing(self, instance, value):
+        instance.spacing = self.size[1] * 17/689
+
+    def update_button_height(self, instance, value):
+        instance.height = self.size[1] * 91 / 689
+
+    def on_rollback_sidebar(self, instance):
+
+        if self.game_screen.char_sidebar and self.game_screen.char_sidebar.parent:
+            self.game_screen.layout.remove_widget(self.game_screen.char_sidebar)
+            self.game_screen.char_sidebar = None
+
+        if not self.game_screen.sidebar:
+            self.game_screen.call_for_decision(self.player_ID)
+class PlayerSelectingSidebar(FloatLayout):
 
 
     background_color = ListProperty([0.2, 0.2, 0.2, 1])
     def __init__(self, game_screen, mode, player_ID=0, **kwargs):  ###OOO Remove the default for player_ID for online mode
-        super().__init__(orientation='vertical',
+        super().__init__(
                          size_hint=(0.3, 1),
                          pos_hint={'right': 1},
                          **kwargs)
@@ -354,62 +431,164 @@ class PlayerSelectingSidebar(BoxLayout):
         self.label = f"{random.choice(self.game_screen.app.game.label_messages_dict[self.mode])}"
         self.player_ID = player_ID
 
+        self.img_action_folder = os.path.join(os.path.dirname(__file__), r"img_actions/sidebar")
+        self.font_folder = os.path.join(os.path.dirname(__file__), "fonts")
+
         self.mode_actions_dict = {
             "swap": self.execute_swap
             #"witch": self.execute_witch,
             #"joker": self.execute_joker,
         }
+        self.mode_title_dict = {"swap": "A whispered invitation to dance… who shall receive it?"}
 
-        # Transparent-ish background
-        with self.canvas.before:
-            Color(*self.background_color)
-            self.rect = Rectangle(size=self.size, pos=self.pos)
+        #Add background
+        self.background_path = os.path.join(self.img_action_folder, "sidebar_background.png")
+        print(self.background_path)
+        self.background = Image(source=self.background_path, pos_hint={'center_x': 0.5, "center_y": 0.5},
+                                size_hint=(1, 1), allow_stretch=True, keep_ratio=False)
+        self.add_widget(self.background)
 
-        self.bind(size=self._update_rect, pos=self._update_rect)
 
-        # Title
-        title = Label(text=self.label, font_size=24, size_hint=(1, 0.1))
-        self.add_widget(title)
+        #Image of the selecting action
+        self.title_image = Image(source = os.path.join(self.img_action_folder, f"{mode}.png"), size_hint = (86/133, 194/689),
+                                 pos_hint = {"center_x":0.5, "center_y":19/23}, keep_ratio=False, allow_stretch=True, opacity = 0.59)
+        self.add_widget(self.title_image)
+
+        #Title of the selecting action
+        self.title = Label(text=self.mode_title_dict[mode],
+                           font_size=self.size[1] // (12402 / 575),
+                           halign='center',
+                           valign='center',
+                           font_name=os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+                           color=[192 / 255, 135 / 255, 74 / 255, 1],
+                           pos_hint={'center_x': 0.5, "center_y": 412/689},  ## ADJUST LATER
+                           size_hint=(39/57, 126/689)
+                           )
+        self.title_shade = Label(text=self.mode_title_dict[mode],
+                                 font_size=self.size[1] // (12402 / 575),
+                                 halign='center',
+                                 valign='center',
+                                 font_name=os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+                                 color=[116 / 255, 47 / 255, 6 / 255, 1],
+                                 pos_hint={'center_x': self.title.pos_hint["center_x"] * (1 - 18 / 995),
+                                           'center_y': self.title.pos_hint["center_y"] * (1 - 1 / 150)},
+                                 ## ADJUST LATER
+                                 size_hint=self.title.size_hint
+                                 )
+        self.title_shade.shade_of = self.title
+        self.title.text_size = self.title.size
+
+        self.title.bind(size=self.update_title_font)
+        self.title_shade.bind(size=self.update_title_shade_font)
+
+        self.add_widget(self.title_shade)
+        self.add_widget(self.title)
 
         # Scroll
-        scroll = ScrollView(size_hint=(1, 0.8), do_scroll_x=False)
+        self.scroll = ScrollView(size_hint=(337/399, 190/689), do_scroll_x=False,  # 337
+                                 pos_hint={'center_x': 0.5, "center_y": 240 / 689})
+
+        # Create a list of buttons so that we can update all the size together
+        self.scroll.list_buttons = []
 
         # Add the layout grid
-        layout = GridLayout(cols=1, spacing=20, padding=[10, 10, 10, 10], size_hint_y=None)
-        layout.bind(minimum_height=layout.setter('height'))
+        self.grid_layout = GridLayout(cols=1, spacing=18 / 689 * self.size[1], padding=[0, 0, 0, 0],
+                                      size_hint_y=None)
+        self.grid_layout.bind(minimum_height=self.grid_layout.setter('height'), size = self.update_spacing)
 
         for i in range(self.game_screen.player_num):
-            if i != self.player_ID: #Ensure that the player wont have a chance to swap with himself
-                button = Button(
-                    text=str(i),
-                    font_size=20,
-                    size_hint_y=None,  # remove size_hint_y
-                    height=60  # set a fixed height
+            if i != self.player_ID:  # Ensure that the player wont have a chance to swap with himself
+                print(self.size, "mimimi")
+                layout = FloatLayout(height=86/689 * self.size[1], size_hint_y=None)
+                button_img = ClickableImage(
+                    source=os.path.join(self.img_action_folder, "frame_listing.png"),
+                    pos_hint={'center_x': 0.5, 'center_y': 0.5},
+                    keep_ratio=False,
+                    allow_stretch=True,
+                    size_hint_y=None,
+                    height=layout.height,
                 )
+                layout.bind(size = self.update_button_height)
+                button_img.bind(size = self.update_button_height)
 
-                button.bind(on_press = lambda instance, patient_ID = i: self.mode_actions_dict[self.mode](instance, patient_ID))  #We can still use the function like that, take the value and put (...) after it, we can safely sepecify the arguments put inside the function, like the self.mode_actions_dict[self.mode] just a reference, until with the () after it, it becomes real function run
+                button_text = Label(
+                    text=self.game_screen.app.game.players_dict[i].player_name,
+                    font_size=self.size[1] // (12402 / 575),
+                    color=[192 / 255, 135 / 255, 74 / 255, 1],
+                    halign='center',
+                    valign='center',
+                    font_name=os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+                    pos_hint={'center_x': 0.5, "center_y": 0.5},
+                    size_hint=(1, 1)
+                )
+                button_text.text_size = button_text.size
+                button_text.bind(size=self.update_title_font)
+
+                button_img.bind(on_press=lambda instance, patient_ID=i: self.mode_actions_dict[self.mode](instance,
+                                                                                                          patient_ID))  # We can still use the function like that, take the value and put (...) after it, we can safely sepecify the arguments put inside the function, like the self.mode_actions_dict[self.mode] just a reference, until with the () after it, it becomes real function run
                 # Add just-created widget into the grid layout
-                layout.add_widget(button)
+                layout.add_widget(button_img)
+                layout.add_widget(button_text)
+
+                # Append the layout to the list
+                self.scroll.list_buttons.append(layout)
+
+                self.grid_layout.add_widget(layout)
 
         # Add the whole grid layout into the scroll
-        scroll.add_widget(layout)
+        self.scroll.add_widget(self.grid_layout)
 
-        # Add the scroll to the total layout
-        self.add_widget(scroll)
+        # Add all of them to the parent
+        self.add_widget(self.scroll)
 
+
+        # Roll back button
+        self.rollback_btn_img = ClickableImage(
+            size_hint=(61 / 399, 61 / 689),
+            source=os.path.join(self.img_action_folder, "return_button_flip.png"),
+            pos_hint={"center_x": 0.5, "center_y": 137 / 1378},
+            keep_ratio=False,
+            allow_stretch=True)
+
+        self.rollback_btn_img.bind(on_press=self.on_rollback_sidebar)
+        self.add_widget(self.rollback_btn_img)
     def _update_rect(self, instance, value):
         self.rect.pos = instance.pos
         self.rect.size = instance.size
 
+
+    def update_title_font(self, instance, value):
+        instance.font_size = self.size[1]//(12402/575)
+        instance.text_size = instance.size
+
+    def update_title_shade_font(self, instance, value):
+        instance.font_size = self.size[1] // (12402 / 575)
+        instance.text_size = instance.size
+        instance.pos_hint = {'center_x': instance.shade_of.pos_hint["center_x"] * (1-18/995), 'center_y': instance.shade_of.pos_hint["center_y"] * (1-1/150)} #'center_x': self.title.pos_hint["center_x"] * (1-4/995) #'center_y': self.title.pos_hint["center_y"] * (1-1/24)
     def execute_swap(self, instance, patient_ID):
         self.game_screen.call_for_swap_or_not(self.player_ID, patient_ID)
 
+    def update_button_height(self, instance, value):
+        instance.height = self.size[1] * 86/689
 
-class SwapOrNotSidebar(BoxLayout):
+    def update_spacing(self, instance,value):
+        instance.spacing = 18 / 689 * self.size[1]
+
+    def on_rollback_sidebar(self, instance):
+
+        if self.game_screen.player_sidebar and self.game_screen.player_sidebar.parent:
+            self.game_screen.layout.remove_widget(self.game_screen.player_sidebar)
+            self.game_screen.player_sidebar = None
+
+        if not self.game_screen.sidebar:
+            self.game_screen.call_for_decision(self.player_ID)
+
+
+class SwapOrNotSidebar(FloatLayout):
     background_color = ListProperty([0.2, 0.2, 0.2, 1])
 
     def __init__(self, game_screen, agent_ID, patient_ID, **kwargs):  ###OOO Remove the default for player_ID for online mode
-        super().__init__(orientation='vertical',
+        super().__init__(
                          size_hint=(0.3, 1),
                          pos_hint={'right': 1},
                          **kwargs)
@@ -420,49 +599,174 @@ class SwapOrNotSidebar(BoxLayout):
         self.agent_ID = agent_ID
         self.patient_ID = patient_ID
 
-        # Transparent-ish background
-        with self.canvas.before:
-            Color(*self.background_color)
-            self.rect = Rectangle(size=self.size, pos=self.pos)
+        self.img_action_folder = os.path.join(os.path.dirname(__file__), "img_actions\sidebar")
+        self.font_folder = os.path.join(os.path.dirname(__file__), "fonts")
 
-        self.bind(size=self._update_rect, pos=self._update_rect)
+        # # Transparent-ish background
+        # with self.canvas.before:
+        #     Color(*self.background_color)
+        #     self.rect = Rectangle(size=self.size, pos=self.pos)
+        #
+        # self.bind(size=self._update_rect, pos=self._update_rect)
+        # Add background
+        self.background_path = os.path.join(self.img_action_folder, "sidebar_background.png")
+        self.background = Image(source=self.background_path, pos_hint={'center_x': 0.5, "center_y": 0.5},
+                                size_hint=(1, 1), allow_stretch=True, keep_ratio=False)
+        self.add_widget(self.background)
 
+        #Add the couple in the background
+        self.background_couple_path = os.path.join(self.img_action_folder, "background_couple.png")
+        self.background_couple = Image(source = self.background_couple_path, pos_hint={'center_x': 73/133, "center_y": 0.5}, size_hint = (1, 0.9), opacity = 0.41,allow_stretch=True, keep_ratio=False)
+        self.add_widget(self.background_couple)
         # Title
-        title = Label(text=self.label, font_size=24, size_hint=(1, 0.1))
-        self.add_widget(title)
+        # Title of the selecting action
+        self.title = Label(text="An alluring dance beneath hazy candlelight... shall their fates truly be entwined?",
+                           font_size=self.size[1] // (12402 / 575),
+                           halign='center',
+                           valign='center',
+                           font_name=os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+                           color=[192 / 255, 135 / 255, 74 / 255, 1],
+                           pos_hint={'center_x': 0.5, "center_y": 491 / 689},  ## ADJUST LATER
+                           size_hint=(52 / 57, 126 / 689)
+                           )
+        self.title_shade = Label(text="An alluring dance beneath hazy candlelight... shall their fates truly be entwined?",
+                                 font_size=self.size[1] // (12402 / 575),
+                                 halign='center',
+                                 valign='center',
+                                 font_name=os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+                                 color=[116 / 255, 47 / 255, 6 / 255, 1],
+                                 pos_hint={'center_x': self.title.pos_hint["center_x"] * (1 - 18 / 995),
+                                           'center_y': self.title.pos_hint["center_y"] * (1 - 1 / 150)},
+                                 ## ADJUST LATER
+                                 size_hint=self.title.size_hint
+                                 )
+        self.title_shade.shade_of = self.title
+        self.title.text_size = self.title.size
 
+        self.title.bind(size=self.update_title_font)
+        self.title_shade.bind(size=self.update_title_shade_font)
+
+        self.add_widget(self.title_shade)
+        self.add_widget(self.title)
         # Scroll
-        scroll = ScrollView(size_hint=(1, 0.8), do_scroll_x=False)
+        # scroll = ScrollView(size_hint=(1, 0.8), do_scroll_x=False)
+        #
+        # # Add the layout grid
+        # layout = GridLayout(cols=1, spacing=20, padding=[10, 10, 10, 10], size_hint_y=None)
+        # layout.bind(minimum_height=layout.setter('height'))
+        #
+        # for i in ["yes", "no"]:
+        #     button = Button(
+        #         text=i,
+        #         font_size=20,
+        #         size_hint_y=None,  # remove size_hint_y
+        #         height=60  # set a fixed height
+        #     )
+        #
+        #     button.bind(on_press=lambda instance, decision=i: self.swap_decided(instance,
+        #                                                                                                    self.agent_ID,
+        #                                                                                                    self.patient_ID,
+        #                                                                                                    decision,
+        #                                                                                                    self.game_screen))  # We have to use the char_id since if we don't, the lambda will look for i until the loop is done, do it so that the i is passed when the lambda is created (by value, not by reference)
+        #     # Add just-created widget into the grid layout
+        #     layout.add_widget(button)
+        #
+        # # Add the whole grid layout into the scroll
+        # scroll.add_widget(layout)
+        #
+        # # Add the scroll to the total layout
+        # self.add_widget(scroll)
 
-        # Add the layout grid
-        layout = GridLayout(cols=1, spacing=20, padding=[10, 10, 10, 10], size_hint_y=None)
-        layout.bind(minimum_height=layout.setter('height'))
+        #For the Yes button
+        self.yes_button = FloatLayout(
+                                            pos_hint={'center_x': 0.5, "center_y": 352 / 689},
+                                            size_hint=(337 / 399, 86 / 689)
+                                        )
+        self.yes_button_img = ClickableImage(source = os.path.join(self.img_action_folder, "frame_listing.png"),
+                                             pos_hint = {'center_x': 0.5, "center_y": 0.5},
+                                             size_hint = (1,1),
+                                             allow_stretch = True,
+                                             keep_ratio = False)
+        self.yes_button_img.bind(on_press=lambda instance, decision="yes": self.swap_decided(instance,
+                                                                                       self.agent_ID,
+                                                                                       self.patient_ID,
+                                                                                       decision,
+                                                                                       self.game_screen))  # We have to use the char_id since if we don't, the lambda will look for i until the loop is done, do it so that the i is passed when the lambda is created (by value, not by reference)
+        self.yes_button_text = Label(text="Yes",
+                                     font_size=self.size[1] // (12402 / 575),
+                                     halign='center',
+                                     valign='center',
+                                     font_name=os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+                                     color=[192 / 255, 135 / 255, 74 / 255, 1],
+                                     pos_hint={'center_x': 0.5, "center_y": 0.5},  ## ADJUST LATER
+                                     size_hint=(1,1)
+        )
 
-        for i in ["yes", "no"]:
-            button = Button(
-                text=i,
-                font_size=20,
-                size_hint_y=None,  # remove size_hint_y
-                height=60  # set a fixed height
-            )
+        self.yes_button_text.bind(size=self.update_title_font)
 
-            button.bind(on_press=lambda instance, decision=i: self.swap_decided(instance,
-                                                                                                           self.agent_ID,
-                                                                                                           self.patient_ID,
-                                                                                                           decision,
-                                                                                                           self.game_screen))  # We have to use the char_id since if we don't, the lambda will look for i until the loop is done, do it so that the i is passed when the lambda is created (by value, not by reference)
-            # Add just-created widget into the grid layout
-            layout.add_widget(button)
+        self.yes_button.add_widget(self.yes_button_img)
+        self.yes_button.add_widget(self.yes_button_text)
 
-        # Add the whole grid layout into the scroll
-        scroll.add_widget(layout)
+        self.add_widget(self.yes_button)
 
-        # Add the scroll to the total layout
-        self.add_widget(scroll)
+
+        #For the no button
+        self.no_button = FloatLayout(
+            pos_hint={'center_x': 0.5, "center_y": 227 / 689},
+            size_hint=(337 / 399, 86 / 689)
+        )
+        self.no_button_img = ClickableImage(source=os.path.join(self.img_action_folder, "frame_listing.png"),
+                                             pos_hint={'center_x': 0.5, "center_y": 0.5},
+                                             size_hint=(1, 1),
+                                             allow_stretch=True,
+                                             keep_ratio=False)
+        self.no_button_img.bind(on_press=lambda instance, decision="yes": self.swap_decided(instance,
+                                                                                             self.agent_ID,
+                                                                                             self.patient_ID,
+                                                                                             decision,
+                                                                                             self.game_screen))  # We have to use the char_id since if we don't, the lambda will look for i until the loop is done, do it so that the i is passed when the lambda is created (by value, not by reference)
+        self.no_button_text = Label(text="No",
+                                     font_size=self.size[1] // (12402 / 575),
+                                     halign='center',
+                                     valign='center',
+                                     font_name=os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+                                     color=[192 / 255, 135 / 255, 74 / 255, 1],
+                                     pos_hint={'center_x': 0.5, "center_y": 0.5},  ## ADJUST LATER
+                                     size_hint=(1, 1)
+                                     )
+
+        self.no_button_text.bind(size=self.update_title_font)
+
+        self.no_button.add_widget(self.no_button_img)
+        self.no_button.add_widget(self.no_button_text)
+
+        self.add_widget(self.no_button)
+
+        # Roll back button
+        self.rollback_btn_img = ClickableImage(
+            size_hint=(61 / 399, 61 / 689),
+            source=os.path.join(self.img_action_folder, "return_button_flip.png"),
+            pos_hint={"center_x": 0.5, "center_y": 137 / 1378},
+            keep_ratio=False,
+            allow_stretch=True)
+
+        self.rollback_btn_img.bind(on_press=self.on_rollback_sidebar)
+        self.add_widget(self.rollback_btn_img)
+
+
+
 
     def _update_rect(self, instance, value):
         self.rect.pos = instance.pos
         self.rect.size = instance.size
+    def update_title_font(self, instance, value):
+        instance.font_size = self.size[1]//(12402/575)
+        instance.text_size = instance.size
+
+    def update_title_shade_font(self, instance, value):
+        instance.font_size = self.size[1] // (12402 / 575)
+        instance.text_size = instance.size
+        instance.pos_hint = {'center_x': instance.shade_of.pos_hint["center_x"] * (1-18/995), 'center_y': instance.shade_of.pos_hint["center_y"] * (1-1/150)} #'center_x': self.title.pos_hint["center_x"] * (1-4/995) #'center_y': self.title.pos_hint["center_y"] * (1-1/24)
 
     ### Build Idea: Create the swap then we build the selected for each role like Witch, Inquisitor
     def swap_decided(self, instance, agent_ID, patient_ID, decision, game_screen):
@@ -473,10 +777,19 @@ class SwapOrNotSidebar(BoxLayout):
 
         swap(agent_ID, patient_ID, decision, game_screen)
 
-class BlockSelectingSidebar(BoxLayout):
-    background_color = ListProperty([0.2, 0.2, 0.2, 1])
+    def on_rollback_sidebar(self, instance):
+
+        if self.game_screen.swap_or_not_sidebar and self.game_screen.swap_or_not_sidebar.parent:
+            self.game_screen.layout.remove_widget(self.game_screen.swap_or_not_sidebar)
+            self.game_screen.swap_or_not_sidebar = None
+
+        if not self.game_screen.sidebar:
+            self.game_screen.call_for_choose_player("swap", "rollback")
+
+class BlockSelectingSidebar(FloatLayout):
+    # background_color = ListProperty([0.2, 0.2, 0.2, 1])
     def __init__(self, game_screen, first_ID, role_ID, player_ID=0, **kwargs): ###OOO Remove the default for player_ID for online mode
-        super().__init__(orientation='vertical',
+        super().__init__(
                          size_hint=(0.3, 1),
                          pos_hint={'right': 1},
                          **kwargs)
@@ -486,56 +799,186 @@ class BlockSelectingSidebar(BoxLayout):
         self.label = f"Are you the real {self.game_screen.app.game.chars_dict[role_ID].name}?"
         self.player_ID = player_ID
 
+        self.img_action_folder = os.path.join(os.path.dirname(__file__), "img_actions\sidebar")
+        self.font_folder = os.path.join(os.path.dirname(__file__), "fonts")
+
         #This is to start the next block turn
         self.first_ID = first_ID
         self.role_ID = role_ID
 
-        # Transparent-ish background
-        with self.canvas.before:
-            Color(*self.background_color)
-            self.rect = Rectangle(size=self.size, pos=self.pos)
+        # Add background
+        self.background_path = os.path.join(self.img_action_folder, "sidebar_background.png")
+        self.background = Image(source=self.background_path, pos_hint={'center_x': 0.5, "center_y": 0.5},
+                                size_hint=(1, 1), allow_stretch=True, keep_ratio=False)
+        self.add_widget(self.background)
 
-        self.bind(size=self._update_rect, pos=self._update_rect)
+        # Add the couple in the background
+        self.broken_mask_path = os.path.join(self.img_action_folder, "broken_mask.png")
+        self.broken_mask = Image(source=self.broken_mask_path,
+                                       pos_hint={'center_x': 0.5, "center_y": 237/689}, size_hint=(347/399, 6/13),
+                                       opacity=0.23, allow_stretch=True, keep_ratio=False)
+        self.add_widget(self.broken_mask)
 
         # Title
-        title = Label(text=self.label, font_size=24, size_hint=(1, 0.1))
-        self.add_widget(title)
-
-        # Scroll
-        scroll = ScrollView(size_hint=(1, 0.8), do_scroll_x=False)
-
-        # Add the layout grid
-        layout = GridLayout(cols=1, spacing=20, padding=[10, 10, 10, 10], size_hint_y=None)
-        layout.bind(minimum_height=layout.setter('height'))
-
-
-        for i in ["yes", "no"]:
-            button = Button(
-                text=i,
-                font_size=20,
-                size_hint_y=None,  # remove size_hint_y
-                height=60  # set a fixed height
+        # Title
+        # Title of the selecting action
+        self.title = Label(text=f"Someone dares to unveil the secret as The [color=FFD966]{self.game_screen.app.game.chars_dict[self.role_ID].name.capitalize()}[/color]… But beneath it—truth, or yet another mask? Noble one, do you possess the courage to step forward and challenge it?",
+                           font_size=self.size[1] // (12402 / 575),
+                           halign='center',
+                           valign='center',
+                           font_name=os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+                           color=[192 / 255, 135 / 255, 74 / 255, 1],
+                           pos_hint={'center_x': 0.5, "center_y": 1019/1378},  ## ADJUST LATER
+                           size_hint=(50 / 57, 281 / 689),
+                           markup = True
+                           )
+        self.title_shade = Label(
+            text=f"Someone dares to unveil the secret as The {self.game_screen.app.game.chars_dict[self.role_ID].name.capitalize()}… But beneath it—truth, or yet another mask? Noble one, do you possess the courage to step forward and challenge it?",
+            font_size=self.size[1] // (12402 / 575),
+            halign='center',
+            valign='center',
+            font_name=os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+            color=[116 / 255, 47 / 255, 6 / 255, 1],
+            pos_hint={'center_x': self.title.pos_hint["center_x"] * (1 - 18 / 995),
+                      'center_y': self.title.pos_hint["center_y"] * (1 - 1 / 150)},
+            ## ADJUST LATER
+            size_hint=self.title.size_hint
             )
+        self.title_shade.shade_of = self.title
+        self.title.text_size = self.title.size
 
-            button.bind(on_press=lambda instance, decision = i, player_ID=self.player_ID: self.block_decided(instance,
-                                                                                                            self.first_ID,
-                                                                                                            self.role_ID,
-                                                                                                            player_ID,
-                                                                                                            decision,
-                                                                                                            self.game_screen))  # We have to use the char_id since if we don't, the lambda will look for i until the loop is done, do it so that the i is passed when the lambda is created (by value, not by reference)
-            # Add just-created widget into the grid layout
-            layout.add_widget(button)
+        self.title.bind(size=self.update_title_font)
+        self.title_shade.bind(size=self.update_title_shade_font)
 
-        # Add the whole grid layout into the scroll
-        scroll.add_widget(layout)
+        self.add_widget(self.title_shade)
+        self.add_widget(self.title)
 
-        # Add the scroll to the total layout
-        self.add_widget(scroll)
+
+        #Yes button
+        self.yes_button = FloatLayout(
+            pos_hint={'center_x': 0.5, "center_y": 302 / 689},
+            size_hint=(337 / 399, 86 / 689)
+        )
+        self.yes_button_img = ClickableImage(source=os.path.join(self.img_action_folder, "frame_listing.png"),
+                                             pos_hint={'center_x': 0.5, "center_y": 0.5},
+                                             size_hint=(1, 1),
+                                             allow_stretch=True,
+                                             keep_ratio=False)
+        self.yes_button_img.bind(on_press=lambda instance, decision="yes", player_ID=self.player_ID: self.block_decided(instance,
+                                                                                                       self.first_ID,
+                                                                                                       self.role_ID,
+                                                                                                       player_ID,
+                                                                                                       decision,
+                                                                                                       self.game_screen))  # We have to use the char_id since if we don't, the lambda will look for i until the loop is done, do it so that the i is passed when the lambda is created (by value, not by reference)
+        self.yes_button_text = Label(text="Yes",
+                                     font_size=self.size[1] // (12402 / 575),
+                                     halign='center',
+                                     valign='center',
+                                     font_name=os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+                                     color=[192 / 255, 135 / 255, 74 / 255, 1],
+                                     pos_hint={'center_x': 0.5, "center_y": 0.5},  ## ADJUST LATER
+                                     size_hint=(1, 1)
+                                     )
+
+        self.yes_button_text.bind(size=self.update_title_font)
+
+        self.yes_button.add_widget(self.yes_button_img)
+        self.yes_button.add_widget(self.yes_button_text)
+
+        self.add_widget(self.yes_button)
+
+        # For the no button
+        self.no_button = FloatLayout(
+            pos_hint={'center_x': 0.5, "center_y": 191 / 689},
+            size_hint=(337 / 399, 86 / 689)
+        )
+        self.no_button_img = ClickableImage(source=os.path.join(self.img_action_folder, "frame_listing.png"),
+                                            pos_hint={'center_x': 0.5, "center_y": 0.5},
+                                            size_hint=(1, 1),
+                                            allow_stretch=True,
+                                            keep_ratio=False)
+        self.no_button_img.bind(
+            on_press=lambda instance, decision="no", player_ID=self.player_ID: self.block_decided(instance,
+                                                                                                   self.first_ID,
+                                                                                                   self.role_ID,
+                                                                                                   player_ID,
+                                                                                                   decision,
+                                                                                                   self.game_screen))
+        self.no_button_text = Label(text="No",
+                                    font_size=self.size[1] // (12402 / 575),
+                                    halign='center',
+                                    valign='center',
+                                    font_name=os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+                                    color=[192 / 255, 135 / 255, 74 / 255, 1],
+                                    pos_hint={'center_x': 0.5, "center_y": 0.5},  ## ADJUST LATER
+                                    size_hint=(1, 1)
+                                    )
+
+        self.no_button_text.bind(size=self.update_title_font)
+
+        self.no_button.add_widget(self.no_button_img)
+        self.no_button.add_widget(self.no_button_text)
+
+        self.add_widget(self.no_button)
+
+        # Roll back button
+        self.rollback_btn_img = ClickableImage(
+            size_hint=(61 / 399, 61 / 689),
+            source=os.path.join(self.img_action_folder, "return_button_flip.png"),
+            pos_hint={"center_x": 0.5, "center_y": 137 / 1378},
+            keep_ratio=False,
+            allow_stretch=True)
+
+        self.rollback_btn_img.bind(on_press=self.on_rollback_sidebar)
+        self.add_widget(self.rollback_btn_img)
+
+        # Rollback again button
+        self.rollback_again_btn_img = ClickableImage(
+            size_hint=(61 / 1333, 61 / 689),
+            source=os.path.join(self.img_action_folder, "return_button.png"),
+            pos_hint={"center_x": 1 - 99 / 1378, "center_y": 0.5},
+            keep_ratio=False,
+            allow_stretch=True)
+
+        self.rollback_again_btn_img.bind(on_press=self.on_rollback_again_sidebar)
+
+
+        # for i in ["yes", "no"]:
+        #     button = Button(
+        #         text=i,
+        #         font_size=20,
+        #         size_hint_y=None,  # remove size_hint_y
+        #         height=60  # set a fixed height
+        #     )
+        #
+        #     button.bind(on_press=lambda instance, decision = i, player_ID=self.player_ID: self.block_decided(instance,
+        #                                                                                                     self.first_ID,
+        #                                                                                                     self.role_ID,
+        #                                                                                                     player_ID,
+        #                                                                                                     decision,
+        #                                                                                                     self.game_screen))  # We have to use the char_id since if we don't, the lambda will look for i until the loop is done, do it so that the i is passed when the lambda is created (by value, not by reference)
+        #     # Add just-created widget into the grid layout
+        #     layout.add_widget(button)
+        #
+        # # Add the whole grid layout into the scroll
+        # scroll.add_widget(layout)
+        #
+        # # Add the scroll to the total layout
+        # self.add_widget(scroll)
 
     def _update_rect(self, instance, value):
         self.rect.pos = instance.pos
         self.rect.size = instance.size
     ### Build Idea: Create the swap then we build the selected for each role like Witch, Inquisitor
+
+    def update_title_font(self, instance, value):
+        instance.font_size = self.size[1]//(12402/575)
+        instance.text_size = instance.size
+
+    def update_title_shade_font(self, instance, value):
+        instance.font_size = self.size[1] // (12402 / 575)
+        instance.text_size = instance.size
+        instance.pos_hint = {'center_x': instance.shade_of.pos_hint["center_x"] * (1-18/995), 'center_y': instance.shade_of.pos_hint["center_y"] * (1-1/150)} #'center_x': self.title.pos_hint["center_x"] * (1-4/995) #'center_y': self.title.pos_hint["center_y"] * (1-1/24)
     def block_decided (self, instance, first_ID, role_ID, player_ID, decision, game_screen ):
 
         game_screen.app.game.decide_dict[decision].append(player_ID)
@@ -543,6 +986,20 @@ class BlockSelectingSidebar(BoxLayout):
         #Hide all sidebars, update UI actions widget
         game_screen.hide_all_sidebars()
         game_screen.widgets_dict[player_ID].show_action(3, decision, first_ID, role_ID)
+
+    def on_rollback_sidebar(self, instance):
+
+        if self.game_screen.block_sidebar and self.game_screen.block_sidebar.parent:
+            self.game_screen.layout.remove_widget(self.game_screen.block_sidebar)
+            self.game_screen.block_sidebar = None
+
+        if not self.rollback_again_btn_img.parent:
+            self.game_screen.add_widget(self.rollback_again_btn_img)
+
+    def on_rollback_again_sidebar(self, instance):
+        self.game_screen.call_for_block(self.first_ID, self.role_ID)
+
+        self.game_screen.remove_widget(self.rollback_again_btn_img)
 
 
 class PlayerWidget(BoxLayout):

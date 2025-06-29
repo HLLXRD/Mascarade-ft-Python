@@ -180,6 +180,10 @@ class Game:
             agent.confidence = (agent_prev + patient_prev) * 0.5
             patient.confidence = (patient_prev) * 0.5
 
+            #Also, since a swap appears, we reset the turn of revealed of the players (both agent and patient)
+            agent.revealed = 0
+            patient.revealed = 0
+
             #Update the bots' probability
             for bot_ID in self.bots_dict:
                 self.bots_dict[bot_ID].swap_update(agent_ID, patient_ID)
@@ -195,7 +199,6 @@ class Game:
                 self.bots_dict[bot].reveal_update(action_dict["claimers"], "combat")
 
 
-            #The revealed player must wait at least 3 turns to claim again
             ###maybe /2 is not a good choice, can put this into the setting option?
             if len(action_dict["claimers"]) != 1:
                 for player_ID,_ in action_dict["claimers"]:
