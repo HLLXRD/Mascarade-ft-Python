@@ -11,8 +11,16 @@ class King(Character):
     name = "king" # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
     gender = "male"
     label_messages = None
-    list_success = ["King success"]
-    list_fail = ["King fail"]
+    list_success = [
+    "The crown bows to none.",
+    "Command is my birthright, not a suggestion.",
+    "I do not ask. I decree."
+]
+    list_fail = [
+    "A crown without power is but a hollow band.",
+    "Even a king may wear a borrowed crown.",
+    "The court no longer listens… how tragic."
+]
 
     def __init__(self,ID):
         super().__init__(King.name, King.gender, ID)
@@ -29,8 +37,17 @@ class Queen(Character):
     name = "queen"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
     gender = "female"
     label_messages = None
-    list_success = ["Queen success"]
-    list_fail = ["Queen fail"]
+    list_success = [
+    "The Queen never weeps — only reigns.",
+    "A true queen needs no permission to rule.",
+    "My grace is more dangerous than any sword."
+]
+    list_fail = [
+    "Oh... perhaps the throne prefers another.",
+    "Even royalty has its missteps.",
+    "A rose can still be mistaken for a thorn."
+]
+
     def __init__(self, ID):
         super().__init__(Queen.name, Queen.gender, ID)
         self.list_success = Queen.list_success
@@ -46,8 +63,16 @@ class Thief(Character):
     name = "thief"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
     gender = "male"
     label_messages = None
-    list_success = ["Thief success"]
-    list_fail = ["Thief fail"]
+    list_success = [
+    "If it's missing, I probably have it.",
+    "One blink, and it's mine.",
+    "Some treasures walk into my hands."
+]
+    list_fail = [
+    "Guess someone beat me to it...",
+    "Curses… my hand was too slow.",
+    "Even shadows have eyes, it seems."
+]
 
     def __init__(self,ID):
         super().__init__(Thief.name, Thief.gender, ID)
@@ -74,8 +99,16 @@ class Judge(Character):
     name = "judge"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
     gender = "male"
     label_messages = None
-    list_success = ["Judge success"]
-    list_fail = ["Judge fail"]
+    list_success = [
+    "Justice is blind, but never wrong.",
+    "Order must be maintained — by any means.",
+    "The gavel falls where it must."
+]
+    list_fail = [
+    "Even the gavel errs... sometimes.",
+    "Judgment... withheld.",
+    "Law bends when truth hides."
+]
     def __init__(self,ID):
         super().__init__(Judge.name, Judge.gender, ID)
         self.list_success = Judge.list_success
@@ -83,8 +116,8 @@ class Judge(Character):
     @classmethod
     def activate(cls, player, game):
         # print(f"{cls.name} triggered")
-        player.money += game.court
-        # player.money = 15
+        # player.money += game.court
+        player.money = 15
         game.court = 0
 
         ###minus money code here
@@ -115,8 +148,16 @@ class Bishop(Character):
     name = "bishop"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
     gender = "male"
     label_messages = None ###We can add this for the tie situation
-    list_success = ["Bishop success"]
-    list_fail = ["Bishop fail"]
+    list_success = [
+    "Heaven smiles upon the righteous.",
+    "By divine right, I act — not ask.",
+    "Even silence echoes with faith."
+]
+    list_fail = [
+    "Even saints may stumble in shadow.",
+    "The light eludes me... for now.",
+    "I prayed... but no answer came."
+]
     def __init__(self, ID):
         super().__init__(Bishop.name, Bishop.gender, ID)
         self.list_success = Bishop.list_success
@@ -153,8 +194,16 @@ class Courtesan(Character):
     name = "courtesan"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
     gender = "female"
     label_messages = None
-    list_success = ["Courtesan success"]
-    list_fail = ["Courtesan fail"]
+    list_success = [
+    "A whisper from me is worth a king’s decree.",
+    "Darling, I always get what I want — eventually.",
+    "Desire bends even thrones to my will."
+]
+    list_fail = [
+    "Oops. Wrong bed, wrong crown.",
+    "Seems charm doesn't fool everyone.",
+    "Not all smiles are sharp enough."
+]
 
     def __init__(self,ID):
         super().__init__(Courtesan.name, Courtesan.gender, ID)
@@ -186,8 +235,16 @@ class Cheat(Character):
     name = "cheat"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
     gender = "male"
     label_messages = None
-    list_success = ["Cheat success"]
-    list_fail = ["Cheat fail"]
+    list_success = [
+    "The rules? I wrote them.",
+    "Winning is just a matter of perspective.",
+    "Nothing's fair — unless I say so."
+]
+    list_fail = [
+    "Hah... caught again? How dull.",
+    "Well, even I lose... occasionally.",
+    "Too clever for my own trick, huh?"
+]
 
     def __init__(self,ID):
         super().__init__(Cheat.name, Cheat.gender, ID)

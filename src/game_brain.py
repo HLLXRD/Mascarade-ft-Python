@@ -87,8 +87,8 @@ class Game:
         self.bots_dict = {}
         self.player_names_dict = {}
 
-        bot = ["HLLXRD", "Chinhcachep", "Spiderpool", "Sunsea", "Khoaissleeping", "Rmie", "Yukino", "QuanNg"]
-        trait = [" bell", " the_leader", " hedgehog", " hehehe", " intern", " bomboclaat", " university", "3subeso"]
+        bot = ["HLLXRD", "Chinh", "Khoo", "Sunsea", "Khoa", "Rmie", "Yukino", "QuanNg"]
+        trait = ["OOP", "DSA", "ML", "DL", "IT012", "NMLT", "CS", "AI"]
         bot_names = [b + t for b in bot for t in trait]
         random.shuffle(bot_names)
         for i in range(self.player_num):

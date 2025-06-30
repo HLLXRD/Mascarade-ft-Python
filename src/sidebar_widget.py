@@ -125,7 +125,7 @@ class ActionSidebar(FloatLayout):
 
         # If the revealed is 0 and the total turns played are more than 2, show the claim
         if self.player.revealed == 0 and self.game_screen.play_turn_index > 2:
-        #Claim button
+            #Claim button
             self.claim_btn_img = ClickableImage(
                 size_hint=(268 / 399, 9 / 53),
                 source=os.path.join(self.img_action_folder, "best_frame.png"),
@@ -147,7 +147,7 @@ class ActionSidebar(FloatLayout):
 
             self.add_widget(self.claim_btn_img)
             self.add_widget(self.claim_btn_label)
-
+        ######
         #Peek button
         self.peek_btn_img = ClickableImage(
             size_hint=(268 / 399, 9 / 53),
@@ -1258,7 +1258,7 @@ class PlayerWidget(BoxLayout):
             # self.pop_bubble_chat((f"Shall we dance, "
             #                       f"[color=8E1616]Player {patient_ID}[/color]?"))
             self.pop_bubble_chat((f"Shall we dance, "
-                                  f"[color=8E1616]Player {self.game_screen.app.game.players_dict[patient_ID].player_name}aaaaaaaaaaaaa[/color]"
+                                  f"[color=8E1616]Player {self.game_screen.app.game.players_dict[patient_ID].player_name}[/color]"
                                   ))
             self.give_letter(patient_ID) #This takes more than 1.5s to finish it
 

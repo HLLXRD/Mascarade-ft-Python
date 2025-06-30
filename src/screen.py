@@ -11,6 +11,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.image import Image
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.graphics import Color, Rectangle, RoundedRectangle
+from kivy.core.audio import SoundLoader
 
 
 import os
@@ -23,6 +24,11 @@ from .player_and_action import swap, char_selected
 #Make the image clickable
 class ClickableImage(ButtonBehavior, Image):
     pass
+class LimitedTextInput(TextInput):
+    def insert_text(self, substring, from_undo=False):
+        max_chars = 12  # Set your limit here
+        allowed = substring[:max_chars - len(self.text)]
+        return super().insert_text(allowed, from_undo=from_undo)
 class MenuScreen(Screen):
     def __init__(self, app, **kwargs):
         super().__init__(**kwargs)
@@ -318,7 +324,7 @@ class OffNameScreen(Screen):
         #Get the layout
         name_layout = BoxLayout(size_hint=(1, 0.7))
 
-        name_input = TextInput(
+        name_input = LimitedTextInput(
             hint_text="Enter your name",
             multiline=False,
             size_hint=(0.5, 0.5),
@@ -361,6 +367,11 @@ class OffGameScreen(Screen):
         self.block_sidebar = None
         self.swap_or_not_sidebar = None
 
+        # Add sound
+        self.sound_folder = os.path.join(os.path.dirname(__file__), "img_general")
+        #Load the sounds
+        self.sound = SoundLoader.load(os.path.join(self.sound_folder,r'Masquerade Waltz - Andreas Benhaut (mp3cut.net).mp3'))  # Can be .mp3, .ogg, .wav
+
     def on_pre_enter(self, **kwargs):
         # Initialize the sidebars
         self.sidebar = None
@@ -371,6 +382,16 @@ class OffGameScreen(Screen):
         #Resert all the value that will be created later
         self.clear_widgets()
         self.win_condition = False
+
+        #Add sound
+        # self.sound_folder = os.path.join(os.path.dirname(__file__), "img_general")
+        # #Load the sounds
+        # self.sound = SoundLoader.load('Masquerade Waltz - Andreas Benhaut (mp3cut.net).mp3')  # Can be .mp3, .ogg, .wav
+        #
+        if self.sound:
+            print(f"Sound length: {self.sound.length} seconds")
+            self.sound.loop = True
+            self.sound.play()
         # if not self.layout_initialized:
         self.general_folder = os.path.join(os.path.dirname(__file__), "img_general")
         self.layout = FloatLayout()
@@ -384,6 +405,23 @@ class OffGameScreen(Screen):
                             )
         self.layout.add_widget(self.background)
 
+        #Add the button for the sound
+        self.mute_sound_btn = ClickableImage(source=os.path.join(self.general_folder, "mute.png"),
+                                            pos_hint={"center_x": 0.05, "center_y": 0.1}, keep_ratio=True,
+                                            size_hint=(0.1, 0.1))
+
+        self.mute_sound_btn.bind(on_press = self.mute_sound)
+
+        self.layout.add_widget(self.mute_sound_btn)
+
+        # Add the button for the sound
+        self.play_sound_btn = ClickableImage(source=os.path.join(self.general_folder, "sound.png"),
+                                        pos_hint={"center_x": 0.05, "center_y": 0.1}, keep_ratio=True,
+                                        size_hint=(0.1, 0.1))
+
+        self.play_sound_btn.bind(on_press=self.play_sound)
+
+        # self.layout.add_widget(self.play_sound_btn)
 
         self.player_num = self.app.player_num
         center_x = 0.5
@@ -444,14 +482,29 @@ class OffGameScreen(Screen):
                 self.widgets_dict[i].init_claim()
 
 
-        #For the pause button
-        self.pause_button = Button(text="Pause", size_hint=(0.05,0.05), pos_hint={'right': 1})
-        self.pause_button.bind(on_press = self.pause )
-        self.add_widget(self.pause_button)
+        # #For the pause button
+        # self.pause_button = Button(text="Pause", size_hint=(0.05,0.05), pos_hint={'right': 1})
+        # self.pause_button.bind(on_press = self.pause )
+        # self.add_widget(self.pause_button)
 
 
         self.add_widget(self.layout)
         # self.layout_initialized = True
+
+    def on_leave(self):
+        self.sound.stop()
+
+    def mute_sound(self, instance):
+        self.layout.remove_widget(self.mute_sound_btn)
+        if self.sound:
+            self.sound.stop()
+        self.layout.add_widget(self.play_sound_btn)
+
+    def play_sound(self, instance):
+        self.layout.remove_widget(self.play_sound_btn)
+        if self.sound:
+            self.sound.play()
+        self.layout.add_widget(self.mute_sound_btn)
 
 
 
@@ -470,10 +523,10 @@ class OffGameScreen(Screen):
     def close_app(self, instance):
         App.get_running_app().stop()
 
-    def pause(self,instance):
-        pause_overlay = PauseOverlay()
-        Clock.unschedule(self.play_turn)
-        self.add_widget(pause_overlay)
+    # def pause(self,instance):
+    #     pause_overlay = PauseOverlay()
+    #     Clock.unschedule(self.play_turn)
+    #     self.add_widget(pause_overlay)
 
     def on_enter(self, **kwargs):
         for i in self.widgets_dict:
@@ -867,16 +920,22 @@ class WinScene(Screen):
         self.app = app
         self.name = "win_scene"
 
-        layout = BoxLayout(orientation='vertical', spacing=20, padding=50)
+        self.image_general_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'img_general')
 
-        self.label = Label(text=" You Win! ", font_size=36, size_hint=(1, 0.3))
-        layout.add_widget(self.label)
+        self.layout = FloatLayout(size_hint = (1,1))
 
-        main_menu_btn = Button(text="Return to Main Menu", font_size=24, size_hint=(1, 0.2))
-        main_menu_btn.bind(on_press=self.return_to_menu)
-        layout.add_widget(main_menu_btn)
+        self.background_path = os.path.join(self.image_general_folder, "winscreen.png")
+        self.background = Image(source = self.background_path, size_hint = (1,1), allow_stretch = True, keep_ratio = False)
+        self.layout.add_widget(self.background)
 
-        self.add_widget(layout)
+        self.main_menu_btn = ClickableImage(source = os.path.join(self.image_general_folder, "return_button.png"), pos_hint = {"center_x": 0.05, "center_y": 0.1}, keep_ratio = True, size_hint = (0.1, 0.1))
+        self.main_menu_btn.bind (on_press=self.return_to_menu)
+
+        # main_menu_btn = Button(text="Return to Main Menu", font_size=24, size_hint=(1, 0.2))
+        # main_menu_btn.bind(on_press=self.return_to_menu)
+        self.layout.add_widget(self.main_menu_btn)
+
+        self.add_widget(self.layout)
 
     def return_to_menu(self, instance):
         self.app.sm.current = "menu"
@@ -890,16 +949,23 @@ class LoseScene(Screen):
         self.app = app
         self.name = "lose_scene"
 
-        layout = BoxLayout(orientation='vertical', spacing=20, padding=50)
+        self.image_general_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'img_general')
 
-        self.label = Label(text=" You Lose! ", font_size=36, size_hint=(1, 0.3))
-        layout.add_widget(self.label)
+        self.layout = FloatLayout(size_hint=(1, 1))
 
-        main_menu_btn = Button(text="Return to Main Menu", font_size=24, size_hint=(1, 0.2))
-        main_menu_btn.bind(on_press=self.return_to_menu)
-        layout.add_widget(main_menu_btn)
+        self.background_path = os.path.join(self.image_general_folder, "loosescreen.png")
+        self.background = Image(source=self.background_path, size_hint=(1, 1), allow_stretch=True, keep_ratio=False)
+        self.layout.add_widget(self.background)
 
-        self.add_widget(layout)
+        self.main_menu_btn = ClickableImage(source=os.path.join(self.image_general_folder, "return_button.png"),
+                                            pos_hint={"center_x": 0.05, "center_y": 0.1}, keep_ratio=True, size_hint = (0.1, 0.1))
+        self.main_menu_btn.bind(on_press=self.return_to_menu)
+
+        # main_menu_btn = Button(text="Return to Main Menu", font_size=24, size_hint=(1, 0.2))
+        # main_menu_btn.bind(on_press=self.return_to_menu)
+        self.layout.add_widget(self.main_menu_btn)
+
+        self.add_widget(self.layout)
 
     def return_to_menu(self, instance):
         self.app.sm.current = "menu"
