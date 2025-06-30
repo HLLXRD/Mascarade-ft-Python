@@ -10,6 +10,7 @@ from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.image import Image
 from kivy.uix.behaviors import ButtonBehavior
+from kivy.graphics import Color, Rectangle, RoundedRectangle
 
 
 import os
@@ -108,7 +109,7 @@ class MenuScreen(Screen):
 
         self.exit_btn_img.bind(on_press=self.exit_game)
 
-        self.exit_btn_text = Label(text="Start game", font_size=self.size[1] // (12402 / 575) * 36 / 23, size_hint=(1, 1),
+        self.exit_btn_text = Label(text="Exit", font_size=self.size[1] // (12402 / 575) * 36 / 23, size_hint=(1, 1),
                                     pos_hint={'center_x': 0.5, 'center_y': 0.5}, valign = "center", halign = "center", font_name = os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
                                    color=[192 / 255, 135 / 255, 74 / 255, 1])
         self.exit_btn_text.bind(size=self.update_font_size)
@@ -157,41 +158,139 @@ class OptionsScreen(Screen):
         self.clear_widgets()
         self.player_num = 3  # Default number of players
         # Main layout
-        layout = BoxLayout(orientation='vertical', spacing=20, padding=50)
+        self.layout = FloatLayout(size_hint = (1,1))
+
+        self.img_general_folder = os.path.join(os.path.dirname(__file__), "img_general")
+        self.font_folder = os.path.join(os.path.dirname(__file__), "fonts")
+
+        self.background_path = os.path.join(self.img_general_folder, "option_background.png")
+        self.background = Image(source = self.background_path, size_hint=(1, 1), pos_hint={'center_x': 0.5, 'center_y': 0.5}, allow_stretch=True, keep_ratio=False)
+        self.layout.add_widget(self.background)
 
         # Title
-        title = Label(text='Options', font_size=36, size_hint=(1, 0.2))
-        layout.add_widget(title)
+        # Title
+        self.title = Label(text="Option",
+                           font_size=self.layout.size[1] * 72/23 // (12402 / 575),
+                           halign='center',
+                           valign='center',
+                           font_name=os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+                           color=[191 / 255, 144 / 255, 0 / 255, 1],
+                           pos_hint={'center_x': 0.5, "center_y": 573 / 689},  ## ADJUST LATER
+                           size_hint=(278 / 399, 126 / 689)
+                           )
+        print(self.title.pos_hint)
+        self.title_shade = Label(text=self.title.text,
+                                 font_size=self.layout.size[1]* 72/23 // (12402 / 575),
+                                 halign='center',
+                                 valign='center',
+                                 font_name=os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+                                 color=[116 / 255, 47 / 255, 6 / 255, 1],
+                                 pos_hint={'center_x': self.title.pos_hint["center_x"] * (1 - 12 / 995),
+                                           'center_y': self.title.pos_hint["center_y"] * (1 - 1 / 150)},
+                                 ## ADJUST LATER
+                                 size_hint=self.title.size_hint
+                                 )
+        self.title_shade.shade_of = self.title
+
+        self.title.text_size = self.title.size
+
+        self.title.bind(size=self.update_title_font)
+        self.title_shade.bind(size=self.update_title_shade_font)
+
+        self.layout.add_widget(self.title_shade)
+        self.layout.add_widget(self.title)
 
         # Player count section
-        player_layout = BoxLayout(orientation='vertical', spacing=10, size_hint=(1, 0.4))
 
         # Player count label
-        self.player_label = Label(text=f'Number of Players: {self.player_num}', font_size=24)
-        player_layout.add_widget(self.player_label)
+        self.player_label = Label(text=f'Number of Players: {self.player_num}', font_size=self.layout.size[1]* 36/23 // (12402 / 575), color = [191 / 255, 144 / 255, 0 / 255, 1], pos_hint={'center_x': 0.5, 'center_y': 0.5
+                                                                                                                                                                                             }, font_name = os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"))
+        self.player_label.bind(size=self.update_button_font)
 
         # Player count slider
-        self.player_slider = Slider(min=3, max=8, step=1, size_hint=(1, 0.3))
+        self.player_slider = Slider(min=3, max=8, step=1, size_hint=(0.7, 0.02),
+                background_horizontal='',  # Transparent background image
+                value_track=True,
+                value_track_color=(1, 0.2, 0.2, 1),  # No bg image
+                background_disabled_horizontal='',  # No disabled bg image
+                # background_vertical='',  # Same for vertical sliders
+                # background_disabled_vertical='',
+                background_width=0,
+                # Light red fill color
+                value_track_width=4,
+                cursor_image= os.path.join(self.img_general_folder, "court.png"),
+                pos_hint = {'center_x': 0.5, 'center_y': 0.5},
+                )
+        with self.player_slider.canvas.before:
+            # self.texture = Image(source = r"D:\Em yêu những môn học này\OOP\Mascarade\kivy\src\img_general\raw\widget_background_copy.png").texture
+
+            Color(0.5, 0, 0, 1)  # Dark red color (values 0–1)
+            self._slider_bg = RoundedRectangle(pos=self.player_slider.pos,
+                                        size=self.player_slider.size,
+                                        radius=[(20, 20), (20, 20), (20, 20), (20, 20)],
+                                        segments=24,
+                                        # texture = self.texture
+                                        )
+
         self.player_slider.bind(value=self.on_player_count_change)
-        player_layout.add_widget(self.player_slider)
+        # Update rectangle when slider moves or resizes
+        self.player_slider.bind(pos=self._update_slider_bg,
+                                size=self._update_slider_bg)
+        self.layout.add_widget(self.player_slider)
 
-        layout.add_widget(player_layout)
-
-        # Buttons layout
-        button_layout = BoxLayout(orientation='horizontal', spacing=20, size_hint=(1, 0.4))
 
         # Back button
-        back_btn = Button(text='Back to Menu', font_size=20)
-        back_btn.bind(on_press=self.back_to_menu)
-        button_layout.add_widget(back_btn)
+        self.back_btn_img = ClickableImage(source = os.path.join(self.img_general_folder, "button.png"), size_hint = (468/1333, 39/250), pos_hint = {'center_x': 342/1333, 'center_y': 271/1500}, allow_stretch = True, keep_ratio = False)
+        self.back_btn_text = Label(text='Back', font_size=self.layout.size[1]* 36/23 // (12402 / 575),
+                            color = [192 / 255, 0 / 255, 0 / 255, 1],
+                            halign = 'center',
+                            valign = 'center',
+                            font_name = os.path.join(self.font_folder, "ManufacturingConsent-Regular.ttf"),
+                            pos_hint = {'center_x': self.back_btn_img.pos_hint["center_x"], "center_y": self.back_btn_img.pos_hint["center_y"]},
+                            size_hint = (1, 1)
+                            )
+        self.back_btn_img.bind(on_press=self.back_to_menu)
+        self.back_btn_text.bind(size = self.update_button_font)
 
         # Apply button
-        apply_btn = Button(text='Apply Settings', font_size=20)
-        apply_btn.bind(on_press=self.apply_settings)
-        button_layout.add_widget(apply_btn)
+        self.apply_btn_img = ClickableImage(source=os.path.join(self.img_general_folder, "button.png"),
+                                      size_hint=(468/1333, 39/250),
+                                      pos_hint={'center_x': 1007/1333, 'center_y': 271/1500}, allow_stretch = True, keep_ratio = False)
+        self.apply_btn_text = Label(text='Apply', font_size=self.layout.size[1] * 36 / 23 // (12402 / 575),
+                          color=[233 / 255, 188 / 255, 21 / 255, 1],
+                          halign='center',
+                          valign='center',
+                          font_name=os.path.join(self.font_folder, "ManufacturingConsent-Regular.ttf"),
+                          pos_hint={'center_x': self.apply_btn_img.pos_hint["center_x"], "center_y": self.apply_btn_img.pos_hint["center_y"]},
+                          size_hint=(1, 1)
+                          )
+        self.apply_btn_img.bind(on_press=self.apply_settings)
+        self.apply_btn_text.bind(size=self.update_button_font)
 
-        layout.add_widget(button_layout)
-        self.add_widget(layout)
+        self.layout.add_widget(self.apply_btn_img)
+        self.layout.add_widget(self.back_btn_img)
+        self.layout.add_widget(self.apply_btn_text)
+        self.layout.add_widget(self.back_btn_text)
+        self.layout.add_widget(self.player_label)
+
+        self.add_widget(self.layout)
+
+    def _update_slider_bg(self, instance, value):
+        self._slider_bg.pos = instance.pos
+        self._slider_bg.size = instance.size
+
+    def update_title_font(self, instance, value):
+        instance.font_size = self.layout.size[1]* 72/23//(12402/575)
+        instance.text_size = instance.size
+
+    def update_button_font(self, instance, value):
+        instance.font_size = self.layout.size[1]* 36/23 // (12402 / 575)
+        instance.text_size = instance.size
+
+    def update_title_shade_font(self, instance, value):
+        instance.font_size = self.layout.size[1] * 72/23 // (12402 / 575)
+        instance.text_size = instance.size
+        instance.pos_hint = {'center_x': instance.shade_of.pos_hint["center_x"] * (1-12/995), 'center_y': instance.shade_of.pos_hint["center_y"] * (1-1/150)}
 
     def on_player_count_change(self, instance, value):
         self.player_num = int(value)
@@ -263,6 +362,12 @@ class OffGameScreen(Screen):
         self.swap_or_not_sidebar = None
 
     def on_pre_enter(self, **kwargs):
+        # Initialize the sidebars
+        self.sidebar = None
+        self.player_sidebar = None
+        self.char_sidebar = None
+        self.block_sidebar = None
+        self.swap_or_not_sidebar = None
         #Resert all the value that will be created later
         self.clear_widgets()
         self.win_condition = False

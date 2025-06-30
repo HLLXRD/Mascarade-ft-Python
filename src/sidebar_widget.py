@@ -124,29 +124,29 @@ class ActionSidebar(FloatLayout):
 
 
         # If the revealed is 0 and the total turns played are more than 2, show the claim
-        # if self.player.revealed == 0 and self.game_screen.play_turn_index > 2:
+        if self.player.revealed == 0 and self.game_screen.play_turn_index > 2:
         #Claim button
-        self.claim_btn_img = ClickableImage(
-            size_hint=(268 / 399, 9 / 53),
-            source=os.path.join(self.img_action_folder, "best_frame.png"),
-            pos_hint={"center_x": 0.5, "center_y": 913 / 1378 - 7000/ 35139},
-            keep_ratio=False,
-            allow_stretch=True)
-        self.claim_btn_label = Label(text="Claim",
-                                    font_size=self.size[1] * 28 / 23 // (12402 / 575),
-                                    font_name=os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
-                                    size_hint=(268 / 399, 9 / 53),
-                                    pos_hint={"center_x": 0.5, "center_y": 913 / 1378 - 7000/ 35139},
-                                    valign='center',
-                                    halign='center',
-                                    color=[192 / 255, 135 / 255, 74 / 255, 1])
-        self.claim_btn_label.text_size = self.claim_btn_label.size
+            self.claim_btn_img = ClickableImage(
+                size_hint=(268 / 399, 9 / 53),
+                source=os.path.join(self.img_action_folder, "best_frame.png"),
+                pos_hint={"center_x": 0.5, "center_y": 913 / 1378 - 7000/ 35139},
+                keep_ratio=False,
+                allow_stretch=True)
+            self.claim_btn_label = Label(text="Claim",
+                                        font_size=self.size[1] * 28 / 23 // (12402 / 575),
+                                        font_name=os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+                                        size_hint=(268 / 399, 9 / 53),
+                                        pos_hint={"center_x": 0.5, "center_y": 913 / 1378 - 7000/ 35139},
+                                        valign='center',
+                                        halign='center',
+                                        color=[192 / 255, 135 / 255, 74 / 255, 1])
+            self.claim_btn_label.text_size = self.claim_btn_label.size
 
-        self.claim_btn_img.bind(on_press=self.on_claim_role, size = lambda instance, value, pos = 7000/ 35139: self.update_button_img(instance,value, pos))
-        self.claim_btn_label.bind(size=self.update_button_label)
+            self.claim_btn_img.bind(on_press=self.on_claim_role, size = lambda instance, value, pos = 7000/ 35139: self.update_button_img(instance,value, pos))
+            self.claim_btn_label.bind(size=self.update_button_label)
 
-        self.add_widget(self.claim_btn_img)
-        self.add_widget(self.claim_btn_label)
+            self.add_widget(self.claim_btn_img)
+            self.add_widget(self.claim_btn_label)
 
         #Peek button
         self.peek_btn_img = ClickableImage(

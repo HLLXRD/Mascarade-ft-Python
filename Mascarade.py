@@ -141,6 +141,14 @@ class GameApp(App):
 -Add more music to it
 '''
 
+'''
+important:
+-Option screen
+-Add sound
+-Return to menu
+-App logo
+-Redesign the playerwidget'''
+
 
 
 if __name__ == '__main__':

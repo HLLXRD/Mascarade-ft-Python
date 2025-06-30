@@ -83,8 +83,8 @@ class Judge(Character):
     @classmethod
     def activate(cls, player, game):
         # print(f"{cls.name} triggered")
-        # player.money += game.court
-        player.money = 15
+        player.money += game.court
+        # player.money = 15
         game.court = 0
 
         ###minus money code here
