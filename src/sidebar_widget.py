@@ -19,6 +19,7 @@ import pyglet
 import copy
 
 from .player_and_action import char_selected, swap
+from .char import Witch, Princess
 
 
 
@@ -242,13 +243,13 @@ class ActionSidebar(FloatLayout):
         widget.reveal_card()
 
         #After 3s, hide it
-        Clock.schedule_once(widget.hide_card, 3)
+        Clock.schedule_once(widget.hide_card, 3 * self.game_screen.time_ratio)
 
         #Save to the history
         self.game_screen.app.game.history.append({"mode": 2, "player": self.player_ID})
 
         #Endturn
-        Clock.schedule_once(self.game_screen.end_turn, 4) #Set the time after all the action works
+        Clock.schedule_once(self.game_screen.end_turn, 4* self.game_screen.time_ratio) #Set the time after all the action works
 
     def on_claim_role(self, instance):
         print("Player chose: Claim Role")
@@ -428,18 +429,21 @@ class PlayerSelectingSidebar(FloatLayout):
         self.game_screen = game_screen
         self.players_dict = self.game_screen.app.game.players_dict
         self.chars_dict = self.game_screen.app.game.chars_dict
-        self.label = f"{random.choice(self.game_screen.app.game.label_messages_dict[self.mode])}"
+        # self.label = f"{random.choice(self.game_screen.app.game.label_messages_dict[self.mode])}"
         self.player_ID = player_ID
 
         self.img_action_folder = os.path.join(os.path.dirname(__file__), r"img_actions/sidebar")
         self.font_folder = os.path.join(os.path.dirname(__file__), "fonts")
 
         self.mode_actions_dict = {
-            "swap": self.execute_swap
-            #"witch": self.execute_witch,
+            "swap": self.execute_swap,
+            "witch": self.execute_witch,
+            "princess": self.execute_princess,
             #"joker": self.execute_joker,
         }
-        self.mode_title_dict = {"swap": "A whispered invitation to dance… who shall receive it?"}
+        self.mode_title_dict = {"swap": "A whispered invitation to dance… who shall receive it?",
+                                "witch": "The charm is cast in silence… who shall bear its mark?",
+                                "princess": "Should she raise her hand once more… who shall feel its grace?"}
 
         #Add background
         self.background_path = os.path.join(self.img_action_folder, "sidebar_background.png")
@@ -568,6 +572,21 @@ class PlayerSelectingSidebar(FloatLayout):
     def execute_swap(self, instance, patient_ID):
         self.game_screen.call_for_swap_or_not(self.player_ID, patient_ID)
 
+    def execute_witch(self, instance, patient_ID):
+        result = patient_ID
+        Witch.execute(self.game_screen.app.game.players_dict[self.player_ID], result, self.game_screen.app.game, self.game_screen)
+
+        self.game_screen.layout.remove_widget(self.game_screen.player_sidebar)
+        self.game_screen.player_sidebar = None
+
+    def execute_princess(self, instance, patient_ID):
+        result = patient_ID
+        Princess.execute(self.game_screen.app.game.players_dict[self.player_ID], result, self.game_screen.app.game, self.game_screen, "offline")
+
+        self.game_screen.layout.remove_widget(self.game_screen.player_sidebar)
+        self.game_screen.player_sidebar = None
+
+
     def update_button_height(self, instance, value):
         instance.height = self.size[1] * 86/689
 
@@ -582,6 +601,7 @@ class PlayerSelectingSidebar(FloatLayout):
 
         if not self.game_screen.sidebar:
             self.game_screen.call_for_decision(self.player_ID)
+
 
 
 class SwapOrNotSidebar(FloatLayout):
@@ -1045,8 +1065,8 @@ class PlayerWidget(BoxLayout):
         self.bubble_chat_path = os.path.join(self.img_action_folder, f"bubble_chat_{self.position}.png")
 
 
-        #Initialize the letter for swapping
-        self.letter = None
+        #Initialize the object to send
+        self.object = None
 
 
 
@@ -1173,8 +1193,8 @@ class PlayerWidget(BoxLayout):
 
     def init_claim(self, **kwargs):
         # Set up the animation for the swap, the claim, the peek
-        self.claim_anim_in = Animation(opacity=1, duration=0.6)
-        self.claim_anim_out = Animation(opacity=0, duration=0.6)
+        self.claim_anim_in = Animation(opacity=1, duration=0.6 * self.game_screen.time_ratio)
+        self.claim_anim_out = Animation(opacity=0, duration=0.6 * self.game_screen.time_ratio)
         # Add the hand mask normal to the specify position
         self.hand_mask_normal_path = os.path.join(self.img_action_folder, "hand_mask_normal.png")
         size_hint_x = self.size_hint[0] * 440 / 591
@@ -1260,7 +1280,7 @@ class PlayerWidget(BoxLayout):
             self.pop_bubble_chat((f"Shall we dance, "
                                   f"[color=8E1616]Player {self.game_screen.app.game.players_dict[patient_ID].player_name}[/color]"
                                   ))
-            self.give_letter(patient_ID) #This takes more than 1.5s to finish it
+            self.give(patient_ID, "love_letter") #This takes more than 1.5s to finish it
 
 
 
@@ -1301,7 +1321,7 @@ class PlayerWidget(BoxLayout):
 
 
             #Continue the block turn
-            Clock.schedule_once(lambda dt: self.game_screen.block_turn(dt, first_ID, role_ID), 2)
+            Clock.schedule_once(lambda dt: self.game_screen.block_turn(dt, first_ID, role_ID), 2 * self.game_screen.time_ratio)
 
     def pop_bubble_chat(self, text):
         print(f"======{self.parent.size}=======")
@@ -1313,7 +1333,7 @@ class PlayerWidget(BoxLayout):
             self.parent.add_widget(self.bubble_chat)
         print(f"bubble_chat added! Content: {text}")
 
-    def give_letter (self, patient_ID): #Note that the pos, and the size of x and y in pixel are super trustworthy, while the size of the window system width height is not
+    def give (self, patient_ID, mode): #Note that the pos, and the size of x and y in pixel are super trustworthy, while the size of the window system width height is not
         patient_widget = self.game_screen.widgets_dict[patient_ID]
 
         size_hint_x_letter = patient_widget.size_hint[0] * 21/58
@@ -1327,14 +1347,14 @@ class PlayerWidget(BoxLayout):
         new_bottom_edge = patient_widget.pos[1] + patient_widget.size[1]*( 1 - 41/103)//2
 
         #Let the letter appear
-        if self.letter == None:
-            self.letter = Image(source = os.path.join( self.img_action_folder,"love_letter.png"), size_hint = (size_hint_x_letter, size_hint_y_letter), pos = (old_left_edge, old_bottom_edge))
-        if self.letter.parent == None:
-            self.parent.add_widget(self.letter)
+        if self.object == None:
+            self.object = Image(source = os.path.join( self.img_action_folder,f"{mode}.png"), size_hint = (size_hint_x_letter, size_hint_y_letter), pos = (old_left_edge, old_bottom_edge))
+        if self.object.parent == None:
+            self.parent.add_widget(self.object)
 
         #Give it to the patient
-        move_anim = Animation(pos = (new_left_edge, new_bottom_edge), duration = 1.5, t='out_quad')
-        move_anim.start(self.letter)
+        move_anim = Animation(pos = (new_left_edge, new_bottom_edge), duration = 1.6 * self.game_screen.time_ratio, t='out_quad')
+        move_anim.start(self.object)
 
 
     def clear_action(self, dt):

@@ -29,6 +29,9 @@ class GameApp(App):
         #Screens
         self.sm = None
         self.off_game_screen = None
+
+        ###Test time ratio
+        self.time_ratio = 0.2
     def build(self):
 
         # Create screen manager
@@ -148,7 +151,9 @@ important:
 -Return to menu
 -App logo
 -Redesign the playerwidget'''
-
+'''
+-Adjust the speed of the game as option.
+-Add more players'''
 
 
 if __name__ == '__main__':

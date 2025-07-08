@@ -3,7 +3,7 @@ import numpy as np
 import math
 import copy
 
-from .char import Character, Judge, King, Queen, Thief, Bishop, Widow, Courtesan, Cheat
+from .char import Character, Judge, King, Queen, Thief, Bishop, Widow, Courtesan, Cheat, Patron, Beggar, Witch, Princess
 from .player_and_action import Player, Bot
 
 #__all__ = ['Character', 'Judge', 'Player', 'Game', 'King', 'Queen', 'Thief', 'Judge']
@@ -21,16 +21,19 @@ class Game:
         ###FIX THE BUG PLAYER TYPE THE AMOUNT OF HUMAN EXCEEDING THE PLAYER_NUM
         self.court = start_court
         self.game_mode = game_mode
-        self.label_messages_dict = {'swap': ['Who do you want to swap with?']}
+        # self.label_messages_dict = {'swap': ['Who do you want to swap with?']}
         ###Remember to add Inquisitor and the Cheater to somewhere
-        self.total_high_impacts = [King, Widow, Queen, Courtesan]
+        self.total_high_impacts = [King, Widow, Queen, Courtesan, Patron]
         self.high_impacts = []
         ###The special_activate includes Courtesan, Usurper, Inquisitor, Princess, Witch, consider add the Bishop to this list
-        self.special_activate = [Courtesan]
+        self.special_activate = [Courtesan, Witch, Princess]
         ###Male role
-        self.male = [Judge, King, Thief, Bishop, Cheat]
+        self.male = [Judge, King, Thief, Bishop, Cheat, Patron]
         ###Female role
-        self.female = [Queen, Widow, Courtesan]
+        self.female = [Queen, Widow, Courtesan, Beggar, Witch, Princess]
+
+        ###This decision_activate is only for the bot player when it has to decide whether it should block a claim or not, and it will include the role that requires player to choose something
+        self.decision_activate = [Witch, Princess]
 
     def game_build(self):
         print("Buiding game....")
@@ -58,18 +61,18 @@ class Game:
         #If the number of players is 3, it will be 2
         if self.player_num == 3:
             high_impacts_number = 2
-        selected_roles = [Judge]
+        self.selected_roles = [Judge]
 
-        selected_roles = selected_roles + random.sample(self.total_high_impacts, high_impacts_number)+  random.sample(roles_low_impacts, self.player_num-1 - high_impacts_number) #Ensure that it will always have 2 or more cards with take from the bank
+        self.selected_roles = self.selected_roles + random.sample(self.total_high_impacts, high_impacts_number)+  random.sample(roles_low_impacts, self.player_num-1 - high_impacts_number) #Ensure that it will always have 2 or more cards with take from the bank
 
-        random.shuffle(selected_roles)
+        random.shuffle(self.selected_roles)
 
 
-        print(f"\n\n\n{selected_roles}\n\n\n")
+        print(f"\n\n\n{self.selected_roles}\n\n\n")
 
         # Set up the dictionary for impacts
         ###Should check the length of the high_impact, the ad-hoc where the high_impact has no roles, this can make the match becomes cannot win
-        selected_set = set(selected_roles)
+        selected_set = set(self.selected_roles)
         for i in self.total_high_impacts:
             impact_set = set(self.total_high_impacts)
 
@@ -94,7 +97,7 @@ class Game:
         for i in range(self.player_num):
             if players_type[i] == "human":
                 player_name = next(self.player_names_list)
-                card = selected_roles[i](i)
+                card = self.selected_roles[i](i)
                 print(f"Welcome {player_name}! Your role is {card.name}.")
                 self.players_dict[i] = Player(i, player_name, card, 6, 1, 0)
 
@@ -110,7 +113,7 @@ class Game:
                     self.label_messages_dict[card.name] = card.label_messages
             elif players_type[i] == "bot":
                 bot_name = bot_names[i]
-                card = selected_roles[i](i)
+                card = self.selected_roles[i](i)
                 print(f"{bot_name} has arrived with the role {card.name}!")
                 self.players_dict[i] = Bot(i, bot_name, card, 6, 1, 0)
                 self.bots_dict[i] = self.players_dict[i]
@@ -236,7 +239,7 @@ class Game:
         else:
             return set(winner)
 
-    def test_win_condition(self, player_ID, role_test_ID):
+    def test_win_condition(self, player_ID, role_test_ID, bot_player):
         #This is just for the start of the block turn
         #Create a clone of the game so that it can check the win condition now
         clone = Game(
@@ -257,8 +260,30 @@ class Game:
         #Specify the role that we want to test now
         role_test = clone.chars_dict[role_test_ID]
 
+
+
+
+
         #Specify the player that we will test now
         player = clone.players_dict[player_ID]
+        # Since the Courtesan is really special in those chars which is not in the decision activation, so we need to base on the bot's own memory about the first player to define the gender of the next player of the first player
+        next_player_ID = (player_ID + 1) % len(clone.players_dict)
+        next_player = clone.players_dict[next_player_ID] #This MUST take the next player from the clone, dont put self here
+
+        arr = bot_player.memory_card_array
+        row = arr[next_player_ID, :]
+
+        max_prob_role_ID = np.argmax(row)
+        max_prob_role = clone.chars_dict[max_prob_role_ID]
+        next_player_card = next_player.get_card()
+        next_player_card.gender = max_prob_role.gender
+
+
+
+
+
+
+
 
         #Activate the affected dict
         role_test.activate(player, clone)

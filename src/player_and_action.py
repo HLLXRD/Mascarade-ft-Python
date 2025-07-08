@@ -4,8 +4,9 @@ from kivy.clock import Clock
 import numpy as np
 import copy
 import random
+import heapq
 
-from .char import Character, Judge, King, Queen, Thief, Bishop, Widow, Courtesan, Cheat
+from .char import Character, Judge, King, Queen, Thief, Bishop, Widow, Courtesan, Cheat, Patron, Beggar, Witch, Princess
 from .math_algorithm import sinkhorn_normalize, random_threshold
 
 
@@ -148,6 +149,31 @@ class Bot(Player):
 
             if self.ID in max_money_list and len(max_money_list) == 1:
                 useless_self.append(Bishop)
+
+        # 7. If Beggar is in the game, and the player is poorer than half of the player, add it to the high_impacts_self, and add it to the useless of the next player or it self
+        if Beggar in game.reversed_chars_dict:
+            players_list = list(game.players_dict.values())
+
+            money_sort = sorted(players_list, key=lambda x: x.money) #Sort in ascending order (by default)
+
+            if money_sort.index(self) <= game.player_num // 2 - 1:
+                high_impacts_self.append(Beggar)
+            elif money_sort.index(self) == game.player_num - 1:
+                useless_self.append(Beggar)
+            elif money_sort.index(next_player) <= game.player_num // 2 - 1:
+                high_impacts.append(Beggar) #Consider this, this might be too harsh and violent
+
+        # 8. If Witch is in the game, and the player is poorer than half of the player, add it to the high_impacts_self, and add it to the useless of the next player or it self
+        if Witch in game.reversed_chars_dict:
+            players_list = list(game.players_dict.values())
+
+            money_sort = sorted(players_list, key=lambda x: x.money)  # Sort in ascending order (by default)
+
+            if money_sort.index(self) <= game.player_num // 2 - 1:
+                high_impacts_self.append(Witch)
+            if self.money == money_sort[game.player_num - 1].money:
+                useless_self.append(Witch)
+
 
 
         ###Add Cheat
@@ -322,66 +348,85 @@ class Bot(Player):
         current_yes = game_screen.app.game.decide_dict["yes"] ###Can be removed, maybe used later
         state = None
 
-        #Test the result when the role is triggered by this bot
-        self_test_result = game_screen.app.game.test_win_condition(self.ID, role_ID)
-
-
-
-        #If the bot's self probability about the role is high, say yes
-
-        if len(game_screen.app.game.decide_dict["yes"]) == 1:
-            #If the win condition is trigger after that, say no if this bot included in the winners
-            if type(game_screen.app.game.result_test_win_condition) == set:
-                if self.ID in game_screen.app.game.result_test_win_condition:
-                    game_screen.app.game.decide_dict["no"].append(self.ID)
-                    state = "no"
-
-                #Else, say yes if it has more than 1 money
-                elif not self.ID in game_screen.app.game.result_test_win_condition and self.money != 1:
+        if game_screen.app.game.chars_dict[role_ID] in game_screen.app.game.decision_activate:
+            if game_screen.app.game.chars_dict[role_ID].name == "witch":
+                # If the probability is more than 0.45, say yes
+                if self.memory_card_array[self.ID, role_ID] >= random_threshold(0.35):
                     game_screen.app.game.decide_dict["yes"].append(self.ID)
                     state = "yes"
 
+                elif self.money <= 5 and self.memory_card_array[self.ID, role_ID] >= random_threshold(0.20):
+                    game_screen.app.game.decide_dict["yes"].append(self.ID)
+                    state = "yes"
 
-        if state == None:
-            #If the probability is more than 0.45, say yes
-            if self.memory_card_array[self.ID, role_ID] >= random_threshold(0.45):
-                game_screen.app.game.decide_dict["yes"].append(self.ID)
-                state = "yes"
-            # If the probablity is from 0.3 to 0.45, and claim it can make this bot win, say yes:
-            elif random_threshold(0.25) <= self.memory_card_array[self.ID, role_ID] < random_threshold(0.45):
-                if type(self_test_result) == set:
-                    if self.ID in self_test_result:
+                #Maybe we should add the elif when all the higher prob-holder said no, so the bot is likely the role
+
+        else:
+            #Test the result when the role is triggered by this bot
+            self_test_result = game_screen.app.game.test_win_condition(self.ID, role_ID, self)
+
+            result_test_win_condition = game_screen.app.game.test_win_condition(first_ID, role_ID, self)
+
+
+
+            #If the bot's self probability about the role is high, say yes
+
+            if len(game_screen.app.game.decide_dict["yes"]) == 1:
+                #If the win condition is trigger after that, say no if this bot included in the winners
+                if type(result_test_win_condition) == set:
+                    if self.ID in result_test_win_condition:
+                        game_screen.app.game.decide_dict["no"].append(self.ID)
+                        state = "no"
+
+                    #Else, say yes if it has more than 1 money
+                    elif not self.ID in result_test_win_condition and self.money != 1:
                         game_screen.app.game.decide_dict["yes"].append(self.ID)
                         state = "yes"
-                    # Else, say no
+
                     else:
                         game_screen.app.game.decide_dict["no"].append(self.ID)
                         state = "no"
-                #If the win condition is not triggered but the confidence and the probability of all player in that role is low, and the bot won't lose all the money if it fails, say yes
-                elif not any(game_screen.app.game.players_dict[x].confidence >= random_threshold(0.4) for x in game_screen.app.game.decide_dict["yes"]) and not self.money == 1 and not np.any(self.memory_card_array[:,role_ID] > random_threshold(0.3)):
+
+            if state == None:
+                #If the probability is more than 0.45, say yes
+                if self.memory_card_array[self.ID, role_ID] >= random_threshold(0.45):
                     game_screen.app.game.decide_dict["yes"].append(self.ID)
                     state = "yes"
+                # If the probablity is from 0.3 to 0.45, and claim it can make this bot win, say yes:
+                elif random_threshold(0.25) <= self.memory_card_array[self.ID, role_ID] < random_threshold(0.45):
+                    if type(self_test_result) == set:
+                        if self.ID in self_test_result:
+                            game_screen.app.game.decide_dict["yes"].append(self.ID)
+                            state = "yes"
+                        # Else, say no
+                        else:
+                            game_screen.app.game.decide_dict["no"].append(self.ID)
+                            state = "no"
+                    #If the win condition is not triggered but the confidence and the probability of all player in that role is low, and the bot won't lose all the money if it fails, say yes
+                    elif not any(game_screen.app.game.players_dict[x].confidence >= random_threshold(0.4) for x in game_screen.app.game.decide_dict["yes"]) and not self.money == 1 and not np.any(self.memory_card_array[:,role_ID] > random_threshold(0.3)):
+                        game_screen.app.game.decide_dict["yes"].append(self.ID)
+                        state = "yes"
+                    else:
+
+                        game_screen.app.game.decide_dict["no"].append(self.ID)
+                        state = "no"
+
+                #If the probability is from 0.1 to 0.25
+                elif random_threshold(0.1) < self.memory_card_array[self.ID, role_ID] < random_threshold(0.25):
+                    #If the money is 1, say no immediately
+                    if self.money == 1:
+
+                        game_screen.app.game.decide_dict["no"].append(self.ID)
+                        state = "no"
+
+                    #The confidence and probablity of this is lower than the before thresholds
+                    elif not any(game_screen.app.game.players_dict[x].confidence >= random_threshold(0.3) for x in game_screen.app.game.decide_dict["yes"]) and not np.any(self.memory_card_array[:,role_ID] > random_threshold(0.15)):
+                        game_screen.app.game.decide_dict["yes"].append(self.ID)
+                        state = "yes"
+                #If the probability is lower than 0.1, say no
                 else:
-
                     game_screen.app.game.decide_dict["no"].append(self.ID)
                     state = "no"
-
-            #If the probability is from 0.1 to 0.25
-            elif random_threshold(0.1) < self.memory_card_array[self.ID, role_ID] < random_threshold(0.25):
-                #If the money is 1, say no immediately
-                if self.money == 1:
-
-                    game_screen.app.game.decide_dict["no"].append(self.ID)
-                    state = "no"
-
-                #The confidence and probablity of this is lower than the before thresholds
-                elif not any(game_screen.app.game.players_dict[x].confidence >= random_threshold(0.3) for x in game_screen.app.game.decide_dict["yes"]) and not np.any(self.memory_card_array[:,role_ID] > random_threshold(0.15)):
-                    game_screen.app.game.decide_dict["yes"].append(self.ID)
-                    state = "yes"
-            #If the probability is lower than 0.1, say no
-            else:
-                game_screen.app.game.decide_dict["no"].append(self.ID)
-                state = "no"
 
         if state == None:
 
@@ -398,6 +443,21 @@ class Bot(Player):
             widget = game_screen.widgets_dict[self.ID]
             widget.show_action(3, "yes", first_ID, role_ID)
             # print(f"{self.ID} trigger yes")
+
+    def decide_cards(self, game_screen, mode):
+        if mode == "witch":
+            money_dict = {}
+            for i in game_screen.app.game.players_dict:
+                if i != self.ID:
+                    money_dict.setdefault(game_screen.app.game.players_dict[i].money, []).append(i)
+
+            max_money_list = money_dict[max(money_dict)]
+
+            decision = random.choice(max_money_list)
+
+            return decision
+
+
 
 def char_selected(instance, player_ID, role_ID, game_screen):  # The args take the sidebar boxlayout
     print(f"Player chose: {game_screen.app.game.chars_dict[role_ID].name}")
@@ -424,14 +484,14 @@ def char_selected(instance, player_ID, role_ID, game_screen):  # The args take t
     # Make sure that the wrong_IDs is fully cleaned
     game_screen.app.game.wrong_IDs = []
 
-    # Take the win condition of the first_player
-    game_screen.app.game.result_test_win_condition = game_screen.app.game.test_win_condition(player_ID, role_ID)
+
 
     print(f"++++++Start Block Turn of Player {player_ID}+++++++")
     game_screen.block_turn(0, player_ID, role_ID)
 
 
 def swap(agent_ID, patient_ID, decision, game_screen): # Since the time here is always needs more than 2 to actually finish, raise the endturn after 2
+    time_ratio = game_screen.app.time_ratio
     if decision == "no":
         pass
     elif decision == "yes":
@@ -446,7 +506,7 @@ def swap(agent_ID, patient_ID, decision, game_screen): # Since the time here is 
     dict_for_history = {"mode":0, "agent":agent_ID, "patient":patient_ID}
     game_screen.app.game.history.append(dict_for_history)
 
-    Clock.schedule_once(game_screen.end_turn, 2)
+    Clock.schedule_once(game_screen.end_turn, 2 * time_ratio)
 
 
 

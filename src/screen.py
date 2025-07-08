@@ -21,6 +21,25 @@ import random
 from .game_brain import Game
 from .sidebar_widget import ActionSidebar, CharSelectingSidebar, PlayerSelectingSidebar, SwapOrNotSidebar, BlockSelectingSidebar, PlayerWidget, CourtWidget, PauseOverlay
 from .player_and_action import swap, char_selected
+
+
+
+'''
+Here, we will have some lines to discuss about the text_size, texture_size, label_size, since understanding these slightly-different things thoroughly is really important to manipulate the Labek better:
+
+*text_size: The maximum box that the text can reach, it's a thing that can be predefined by the user, and it's like a deadline designated by a boss (us) to his workder (kivy).
+
+*texture_size: The actual box that the text takes up after being rendered, this is like the actual time when a task is completed, it can only be specified once the task is done, and it cannot be set just like the text_size, it will be set by kivy instead.
+
+*label_size: the size of the label, the label here is like a background, layout information holder for the text.
+
+**The cases to apply them:.
++text_size = label_size: This will ensure that the text wont go out the label, since we have made the maximum text box size = size of the label
++label_size = texture_size: This will make the label fit perfectly to the size of the text_box.
++label_size = text_size: This usually used when we want the background a little bit wide around the text box
+
+
+'''
 #Make the image clickable
 class ClickableImage(ButtonBehavior, Image):
     pass
@@ -209,12 +228,22 @@ class OptionsScreen(Screen):
         # Player count section
 
         # Player count label
-        self.player_label = Label(text=f'Number of Players: {self.player_num}', font_size=self.layout.size[1]* 36/23 // (12402 / 575), color = [191 / 255, 144 / 255, 0 / 255, 1], pos_hint={'center_x': 0.5, 'center_y': 0.5
-                                                                                                                                                                                             }, font_name = os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"))
+        self.player_label = Label(text=f'Number of Players: {self.player_num}',
+                                  font_size=self.layout.size[1]* 36/23 // (12402 / 575),
+                                  color = [191 / 255, 144 / 255, 0 / 255, 1],
+                                  pos_hint={'center_x': 0.5, 'center_y': 0.6},
+                                  font_name = os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+                                  size_hint = (1, 0.1),
+                                  valign='center',
+                                  halign='center')
+
+
         self.player_label.bind(size=self.update_button_font)
 
+        self.layout.add_widget(self.player_label)
+
         # Player count slider
-        self.player_slider = Slider(min=3, max=8, step=1, size_hint=(0.7, 0.02),
+        self.player_slider = Slider(min=3, max=11, step=1, size_hint=(0.7, 0.02),
                 background_horizontal='',  # Transparent background image
                 value_track=True,
                 value_track_color=(1, 0.2, 0.2, 1),  # No bg image
@@ -277,7 +306,6 @@ class OptionsScreen(Screen):
         self.layout.add_widget(self.back_btn_img)
         self.layout.add_widget(self.apply_btn_text)
         self.layout.add_widget(self.back_btn_text)
-        self.layout.add_widget(self.player_label)
 
         self.add_widget(self.layout)
 
@@ -291,8 +319,8 @@ class OptionsScreen(Screen):
 
     def update_button_font(self, instance, value):
         instance.font_size = self.layout.size[1]* 36/23 // (12402 / 575)
-        instance.text_size = instance.size
-
+        instance.text_size = instance.size # Dont add this if we dont have a proper size hint, since we dont manually set a size hint, the label size, since we dont set, the size is (100, 100), and it can make the text_size shrink, wrap awkwardly
+        # instance.size = instance.texture_size
     def update_title_shade_font(self, instance, value):
         instance.font_size = self.layout.size[1] * 72/23 // (12402 / 575)
         instance.text_size = instance.size
@@ -382,6 +410,7 @@ class OffGameScreen(Screen):
         #Resert all the value that will be created later
         self.clear_widgets()
         self.win_condition = False
+        self.time_ratio = self.app.time_ratio
 
         #Add sound
         # self.sound_folder = os.path.join(os.path.dirname(__file__), "img_general")
@@ -532,8 +561,8 @@ class OffGameScreen(Screen):
         for i in self.widgets_dict:
             if type(i) == int:
                 self.widgets_dict[i].reveal_card()
-                Clock.schedule_once(self.widgets_dict[i].hide_card, 5 * self.player_num/4)
-        Clock.schedule_once(self.play_turn, 5 * self.player_num/4 + 0.5)
+                Clock.schedule_once(self.widgets_dict[i].hide_card, 5 * self.player_num/4 * self.time_ratio)
+        Clock.schedule_once(self.play_turn, (5 * self.player_num/4 + 0.5) * self.time_ratio)
 
     def play_turn(self, dt):
         ###Since the game.check() only to check after a claim
@@ -601,7 +630,7 @@ class OffGameScreen(Screen):
                 This makes the status is not updated enough fast, so the activate of the special will be trigger as the normal beside its own method, this make the game bomboclaaat
                 '''
                 print("Complete claim due to normal role, not special!!!")
-                Clock.schedule_once(self.complete_claim, 2.1)
+                Clock.schedule_once(self.complete_claim, 2.1 * self.time_ratio)
 
         else:
             # self.block_turn_index += 1
@@ -636,7 +665,7 @@ class OffGameScreen(Screen):
                 widget.bubble_chat = None
 
             #If there is only one, make the glove with the mask fade, and replace the transparent card with the cardback
-            Clock.schedule_once(first_widget.hide_card, 0)
+            Clock.schedule_once(first_widget.hide_card, 0 * self.time_ratio)
 
             first_widget.claim_anim_out.start(first_widget.hand_mask_normal) # This take 0.6s to complete
 
@@ -654,7 +683,7 @@ class OffGameScreen(Screen):
                     game.chars_dict[role_ID].activate(first, game, self)
                     print(f">>{role_claimed.name} triggered")
 
-            Clock.schedule_once(one_yes, 0.8)
+            Clock.schedule_once(one_yes, 0.8 * self.time_ratio)
             ###This update for the situation everyone agree may cause the bot assume that player is the real role, while we can solve this by just raise the probability to 0.5
         else:
             #If there is more than 1 players claim, add the court to the affected
@@ -676,7 +705,7 @@ class OffGameScreen(Screen):
 
                 #Reveal the card, show the animation of the hand, which will take 1,2s in total
                 widget.claim_anim_out.start(widget.hand_mask_normal)
-                Clock.schedule_once(lambda dt,w = widget: w.claim_anim_in.start(w.hand_mask_rotated), 0.6)
+                Clock.schedule_once(lambda dt,w = widget: w.claim_anim_in.start(w.hand_mask_rotated), 0.6 * self.time_ratio)
                 widget.reveal_card()
 
                 def update_claim(dt, player_ID, card_ID, role_ID, widget):
@@ -696,7 +725,7 @@ class OffGameScreen(Screen):
 
                     game.dict_for_history["claimers"].append((player_ID, card_ID))
 
-                Clock.schedule_once(lambda dt, p = player_ID, c = card_ID, r = role_ID, w = widget:update_claim(dt, p, c, r, w), 1.4)
+                Clock.schedule_once(lambda dt, p = player_ID, c = card_ID, r = role_ID, w = widget:update_claim(dt, p, c, r, w), 1.4 * self.time_ratio)
 
             #Activate the role on the true player
             def activ(dt):
@@ -712,14 +741,14 @@ class OffGameScreen(Screen):
                         game.chars_dict[role_ID].activate(true_player, game, self)
                         print(f">>{role_claimed.name} triggered")
 
-            Clock.schedule_once(activ,1.6)
+            Clock.schedule_once(activ,1.6 * self.time_ratio)
 
 
         #Add the dictionary to the history
         def update_his(dt):
             game.history.append(game.dict_for_history)
 
-        Clock.schedule_once(update_his, 1.8)
+        Clock.schedule_once(update_his, 1.8 * self.time_ratio)
 
 
     def penalize(self):
@@ -742,16 +771,16 @@ class OffGameScreen(Screen):
 
         if len(self.app.game.decide_dict["yes"]) > 1:
             for i in self.app.game.decide_dict["yes"]:
-                Clock.schedule_once(self.widgets_dict[i].hide_card, 2) ###We can just add 0.5 + i * delta_time so that the cards are hid gradually
+                Clock.schedule_once(self.widgets_dict[i].hide_card, 2 * self.time_ratio) ###We can just add 0.5 + i * delta_time so that the cards are hid gradually
                 def remove_widget(dt, widget_ID):
                     print(f"Removing Bubble Chat of the Player {widget_ID}")
                     self.widgets_dict[widget_ID].parent.remove_widget(self.widgets_dict[widget_ID].bubble_chat)
-                Clock.schedule_once(lambda dt ,widget_ID = i: remove_widget(dt, widget_ID), 2)
+                Clock.schedule_once(lambda dt ,widget_ID = i: remove_widget(dt, widget_ID), 2 * self.time_ratio)
                 def none_bubble_chat(dt, widget_ID):
                     print(f"Removing Chat of the Player {widget_ID} from the parent")
                     self.widgets_dict[widget_ID].bubble_chat = None
 
-                Clock.schedule_once(lambda dt, widget_ID = i: none_bubble_chat(dt, widget_ID), 2)
+                Clock.schedule_once(lambda dt, widget_ID = i: none_bubble_chat(dt, widget_ID), 2 * self.time_ratio)
 
         #Remove all the gloves for claim then check the result
         def delayed_check_remove_hand(dt):
@@ -767,26 +796,36 @@ class OffGameScreen(Screen):
             else:
                 self.app.sm.current = "lose_scene"
                 self.win_condition = True
-        Clock.schedule_once(delayed_check_remove_hand, 2.3)
+        Clock.schedule_once(delayed_check_remove_hand, 2.3 * self.time_ratio)
 
 
 
-    def special_activate_UI(self, mode, *args):
-        if mode == "courtesan":
-            print("Updating courtesan...")
-            customer_ID = args[0]
+    # def special_activate_UI(self, mode, *args):
+        # if mode == "courtesan":
+        #     print("Updating courtesan...")
+        #     customer_ID = args[0]
+        #
+        #     # The customers of the Courtesan will reveal to show their gender, also increase the revealed
+        #     self.widgets_dict[customer_ID].reveal_card()
+        #     self.app.game.players_dict[customer_ID].revealed = len(self.app.game.players_dict) // 2 + 1
+        #
+        #     #All the bots will update the customer's card into its memory
+        #     for i in self.app.game.bots_dict:
+        #         self.app.game.bots_dict[i].reveal_update([(customer_ID, self.app.game.players_dict[customer_ID].get_card().ID)], "normal")
+        #
+        #     Clock.schedule_once(self.widgets_dict[customer_ID].hide_card, 2 * self.time_ratio)
+        #
+        #     Clock.schedule_once(self.complete_claim, 3 * self.time_ratio)
 
-            # The customers of the Courtesan will reveal to show their gender, also increase the revealed
-            self.widgets_dict[customer_ID].reveal_card()
-            self.app.game.players_dict[customer_ID].revealed = len(self.app.game.players_dict) // 2 + 1
+        # if mode == "witch":
+        #     spell_caster_ID = args[0]
+        #
+        #     decision = None
+        #     if self.app.game.players_dict[spell_caster_ID].type == "bot":
+        #         decision = self.app.game.players_dict[spell_caster_ID].decide_cards(mode = "witch")
+        #
+        #     elif self.app.game.players_dict[spell_caster_ID].type == "human":
 
-            #All the bots will update the customer's card into its memory
-            for i in self.app.game.bots_dict:
-                self.app.game.bots_dict[i].reveal_update([(customer_ID, self.app.game.players_dict[customer_ID].get_card().ID)], "normal")
-
-            Clock.schedule_once(self.widgets_dict[customer_ID].hide_card, 2)
-
-            Clock.schedule_once(self.complete_claim, 3)
 
     def complete_claim(self, dt):
         print("Complete the claim of the turn!")
@@ -800,9 +839,9 @@ class OffGameScreen(Screen):
                 pass
             else:
                 # Endturn, reduce the confidence
-                Clock.schedule_once(self.end_turn, 0)
+                Clock.schedule_once(self.end_turn, 0 * self.time_ratio)
 
-        Clock.schedule_once(end_turn_check_win, 3)
+        Clock.schedule_once(end_turn_check_win, 3 * self.time_ratio)
 
 
     def end_turn(self, dt):
@@ -817,9 +856,9 @@ class OffGameScreen(Screen):
 
             agent_widget = self.widgets_dict[agent_ID]
 
-            if agent_widget.letter != None:
-                agent_widget.parent.remove_widget(agent_widget.letter)
-                agent_widget.letter = None
+            if agent_widget.object != None:
+                agent_widget.parent.remove_widget(agent_widget.object)
+                agent_widget.object = None
             if agent_widget.bubble_chat != None:
                 agent_widget.parent.remove_widget(agent_widget.bubble_chat)
                 agent_widget.bubble_chat = None
@@ -850,7 +889,7 @@ class OffGameScreen(Screen):
 
 
         self.play_turn_index += 1
-        Clock.schedule_once(self.play_turn, 2)
+        Clock.schedule_once(self.play_turn, 1.5 * self.time_ratio)
 
     def call_for_decision(self, player_ID):
         if self.sidebar is None:

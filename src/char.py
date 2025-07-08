@@ -1,5 +1,16 @@
 import random
+from kivy.clock import Clock
 
+'''
+These are steps to update the new character to the game:
+-Step 1: Adjust the name, the gender, the lists of success and fail of it.
+-Step 2: Let the file game_brain.py and file player_and_action.py import the new character class.
+-Step 3: Add the new character class to the female/male list, high_impacts (if it is) and special_activate (if it is), decision_activate (if it is) list.
+-Step 4: Code the skill for it:
+ +Step 4.1: If it's the skill with no UI required, the activate doesn't need the *args, and we just need to code it in this char.py file
+ +Step 4.2: Else, the activate affects the UI, or need for some decision, we will need to add more things to it, so the activate will require the *args, which will be the game_screen, and the character will need to do the check, update UI and also the end turn itself.
+-Step 5: Append the affected player after the skill activation to the affected dict
+-Step 6: Code for the bot to think about it (add to useless/ high impacts when, and what to raise the decision). Now, we just code the block claim for the character with decision as random, since we dont know what decision will lead to what, so we just need to random select it'''
 class Character:
     def __init__(self, name, gender, ID):
         self.gender = gender
@@ -116,8 +127,8 @@ class Judge(Character):
     @classmethod
     def activate(cls, player, game):
         # print(f"{cls.name} triggered")
-        # player.money += game.court
-        player.money = 15
+        player.money += game.court
+        # player.money = 15
         game.court = 0
 
         ###minus money code here
@@ -229,7 +240,20 @@ class Courtesan(Character):
         if len(args) != 0:
             print("courtesan condition met")
             game_screen = args[0]
-            game_screen.special_activate_UI('courtesan', the_customer_ID)
+            print("Updating courtesan...")
+
+            # The customers of the Courtesan will reveal to show their gender, also increase the revealed
+            game_screen.widgets_dict[the_customer_ID].reveal_card()
+            game_screen.app.game.players_dict[the_customer_ID].revealed = len(game_screen.app.game.players_dict) // 2 + 1
+
+            # All the bots will update the customer's card into its memory
+            for i in game_screen.app.game.bots_dict:
+                game_screen.app.game.bots_dict[i].reveal_update(
+                    [(the_customer_ID, game_screen.app.game.players_dict[the_customer_ID].get_card().ID)], "normal")
+
+            Clock.schedule_once(game_screen.widgets_dict[the_customer_ID].hide_card, 2 * game_screen.time_ratio)
+
+            Clock.schedule_once(game_screen.complete_claim, 3 * game_screen.time_ratio)
 
 class Cheat(Character):
     name = "cheat"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
@@ -258,4 +282,285 @@ class Cheat(Character):
         #The affected target is the courtesan and her customer
         game.affected_dict["affected"].add(player.ID)
 
-### Necromancer, Gambler, Chester, Cheater
+class Patron(Character):
+    name = "patron"
+    gender = "male"
+    label_messages = None
+    list_success = [
+    "Gold is loyal when men are not.",
+    "My purse speaks louder than any plea.",
+    "Fortune favors those who own it."
+]
+    list_fail = [
+    "Even nobles can misplace a coin.",
+    "It seems my wealth was but illusion.",
+    "A misstep—costly and unbecoming."
+]
+
+    def __init__(self,ID):
+        super().__init__(Patron.name, Patron.gender, ID)
+        self.list_success = Patron.list_success
+        self.list_fail = Patron.list_fail
+    @classmethod
+    def activate(cls, player, game):
+        # print(f"{cls.name} triggered")
+        player.money += 3
+        the_patron_ID = player.ID
+        the_recipient_IDs = [player.ID - 1, (player.ID + 1) % len(game.players_dict)]
+        for i in the_recipient_IDs:
+            if i == -1:
+                i = len(game.players_dict) - 1
+            game.players_dict[i].money += 1
+        #The affected target is the patron and the two recipients
+        if -1 in the_recipient_IDs:
+            the_recipient_IDs.remove(-1)
+            the_recipient_IDs.append(len(game.players_dict) - 1)
+        game.affected_dict["affected"].add(the_patron_ID)
+        game.affected_dict["affected"].update(the_recipient_IDs)
+
+class Beggar(Character):
+    name = "beggar"
+    gender = "female"
+    label_messages = None
+    list_success = [
+    "A coin for the lowly? Bless thee!",
+    "Even rags have their revenge.",
+    "The gutter remembers, good sir."
+]
+
+    list_fail = [
+    "No mercy for the wretched, then?",
+    "The street offers no favors today.",
+    "Even pity's well runs dry."
+]
+    def __init__(self,ID):
+        super().__init__(Beggar.name, Beggar.gender, ID)
+        self.list_success = Beggar.list_success
+        self.list_fail = Beggar.list_fail
+    @classmethod
+    def activate(cls, player, game):
+        # print(f"{cls.name} triggered")
+        the_beggar_ID = player.ID
+        i = (the_beggar_ID + 1) % len(game.players_dict)
+        while i != the_beggar_ID:
+            print(i)
+            current_player = game.players_dict[i]
+            if current_player.money > player.money:
+                print("beggared hehe!!!")
+                current_player.money -= 1
+                player.money += 1
+                game.affected_dict["affected"].add(current_player.ID)
+            i = (i+1) % len(game.players_dict)
+        game.affected_dict["affected"].add(the_beggar_ID)
+
+class Witch(Character):
+    name = "witch"
+    gender = "female"
+    label_messages = None
+    list_success = [
+    "The stars told me this would be mine.",
+    "Spells weave truth where words falter.",
+    "The moon obeys no man’s law."
+]
+
+    list_fail = [
+    "The winds betrayed my whisper.",
+    "Magic falters, but only briefly.",
+    "The brew soured mid-spell."
+]
+    def __init__(self,ID):
+        super().__init__(Witch.name, Witch.gender, ID)
+        self.list_success = Witch.list_success
+        self.list_fail = Witch.list_fail
+    @classmethod
+    def activate(cls, player, game, *args):
+        if len(args) != 0:
+            game_screen = args[0]
+        # print(f"{cls.name} triggered")
+        if player.type == "bot":
+            decision = game_screen.app.game.players_dict[player.ID].decide_cards(game_screen=game_screen, mode="witch")
+            cls.execute(player, decision, game, game_screen)
+
+        elif player.type == "human":
+            game_screen.call_for_choose_player("witch", "witch")
+
+
+    @classmethod
+    def execute(cls, player, decision, game, game_screen):
+        spell_caster_ID = player.ID
+
+        victim_ID = decision
+        a = game_screen.app.game.players_dict[spell_caster_ID].money
+        b = game_screen.app.game.players_dict[victim_ID].money
+
+        game_screen.app.game.players_dict[spell_caster_ID].money = b
+        game_screen.app.game.players_dict[victim_ID].money = a
+
+        game.affected_dict["affected"].add(spell_caster_ID)
+        game.affected_dict["affected"].add(victim_ID)
+
+        player_widget = game_screen.widgets_dict[spell_caster_ID]
+
+        player_widget.give(victim_ID, "potion")
+        delete_time = 1.8
+        Clock.schedule_once(lambda dt: player_widget.parent.remove_widget(player_widget.object), delete_time * game_screen.time_ratio) #Remove the potion after
+
+        def set_none(dt):
+            player_widget.object = None
+
+        Clock.schedule_once(set_none, (delete_time + 0.1) * game_screen.time_ratio)
+
+        Clock.schedule_once(game_screen.complete_claim, (delete_time+0.5) * game_screen.time_ratio)
+
+class Princess(Character):
+    name = "princess"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
+    gender = "female"
+    label_messages = None
+    list_success = [
+    "Born to rule, not to beg.",
+    "Grace alone wins the day.",
+    "Nobility is in deed, not birth alone."
+]
+    list_fail = [
+    "A slip, unbecoming of a royal...",
+    "Even roses wilt when plucked too soon.",
+    "My crown... misplaced, it seems."
+]
+
+    def __init__(self, ID):
+        super().__init__(Princess.name, Princess.gender, ID)
+        self.list_success = Princess.list_success
+        self.list_fail = Princess.list_fail
+    @classmethod
+    def activate(cls, player,game, *args):
+        # print(f"{cls.name} triggered")
+        player.money += 2
+
+        game.affected_dict["affected"].add(player.ID)
+
+        if len(args) != 0:
+            game_screen = args[0]
+            # If the princess is triggered not in the test mode but in the normal mode
+            if player.type == "bot":
+                decision = game_screen.app.game.players_dict[player.ID].decide_cards(game_screen=game_screen, mode="princess")
+                cls.execute(player, decision, game, game_screen, "offline")
+
+            elif player.type == "human":
+                game_screen.call_for_choose_player("princess", "princess")
+
+    @classmethod
+    def execute(cls, player, decision, game, game_screen, mode):
+        princess_ID = player.ID
+
+        victim_ID = decision
+
+        others = [j for j in game.players_dict if j != victim_ID]
+
+        player_there = False
+
+        for i in others:
+            if game.players_dict[i].type == "human":
+                player_there = True
+
+        if mode == "offline":
+            for i in others:
+                if game.players_dict[i].type == "bot":
+                    game.players_dict[i].reveal_update([(victim_ID, game.players_dict[victim_ID].ID)], "normal")
+
+
+
+        player_widget = game_screen.widgets_dict[princess_ID]
+
+        player_widget.give(victim_ID, "blue_rose")
+
+        if mode == "offline":
+            if player_there:
+                game_screen.widgets_dict[victim_ID].reveal_card()
+
+        delete_time = 1.8
+        if mode == "offline":
+            if player_there:
+                Clock.schedule_once(game_screen.widgets_dict[victim_ID].hide_card, 2 * game_screen.time_ratio)
+
+                delete_time += 2
+        Clock.schedule_once(lambda dt: player_widget.parent.remove_widget(player_widget.object),
+                            delete_time * game_screen.time_ratio)  # Remove the potion after
+
+        def set_none(dt):
+            player_widget.object = None
+
+        Clock.schedule_once(set_none, (delete_time + 0.1) * game_screen.time_ratio)
+
+        Clock.schedule_once(game_screen.complete_claim, (delete_time + 0.5) * game_screen.time_ratio)
+
+# class Necromancer(Character):
+#     name = "Necromancer"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
+#     gender = "male"
+#     label_messages = None
+#     list_success = [
+#     "necro"
+# ]
+#     list_fail = [
+#     "Necro fail"
+# ]
+#
+#     def __init__(self,ID):
+#         super().__init__(Necromancer.name, Necromancer.gender, ID)
+#         self.list_success = Necromancer.list_success
+#         self.list_fail = Necromancer.list_fail
+#     @classmethod
+#     def activate(cls, player, game):
+#         avail_roles = game.selected_avail_roles
+#         total_roles = game.female+game.male
+#
+#         avail_roles_set = set(avail_roles)
+#         total_roles_set = set(total_roles)
+#         avail_roles_set.intersection_update(avail_roles_set)
+#
+#         self.graveyard = avail_roles
+# class Gangster(Character):
+#     name = "gangster"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
+#     gender = "male"
+#     label_messages = None ###We can add this for the tie situation
+#     list_success = [
+#     "Heaven smiles upon the righteous.",
+#     "By divine right, I act — not ask.",
+#     "Even silence echoes with faith."
+# ]
+#     list_fail = [
+#     "Even saints may stumble in shadow.",
+#     "The light eludes me... for now.",
+#     "I prayed... but no answer came."
+# ]
+#     def __init__(self, ID):
+#         super().__init__(Gangster.name, Gangster.gender, ID)
+#         self.list_success = Gangster.list_success
+#         self.list_fail = Gangster.list_fail
+#
+#
+#     @classmethod
+#     def activate(cls, player,game):
+#         # print(f"{cls.name} triggered")
+#         money_dict = {}
+#         for i in game.players_dict:
+#             money_dict.setdefault(game.players_dict[i].money, []).append(i)
+#
+#         #Get the max-money-holder list
+#         max_money_list = money_dict[max(money_dict)]
+#
+#         if max(money_dict) == player.money and len(max_money_list) >= 2:
+#             max_money_list.remove(player.ID)
+#
+#         #If only one person on the max list, take 2 coin from them
+#         if len(max_money_list) == 1:
+#             chosen_ID = max_money_list[0]
+#         else:
+#             chosen_ID = random.choice(max_money_list)
+#         chosen_player = game.players_dict[chosen_ID]
+#
+#         #Take 2 coins from chosen one
+#         chosen_player.money -= 2
+#         player.money += 2
+#
+#         game.affected_dict["affected"].add(player.ID)
+#         game.affected_dict["affected"].add(chosen_player.ID)
