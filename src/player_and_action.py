@@ -337,7 +337,20 @@ class Bot(Player):
             result = (2, self.ID)
 
         if result[0] == 0:
-            self.decision_swap = result[3]
+
+            if result[3] != None:
+                self.decision_swap = result[3]
+
+            elif result[3] == None:
+                choices = [i for i in game_screen.app.game.players_dict if i != self.ID]
+                choice = random.choice(choices)
+
+                result = list(result)
+                result[3] = choice
+                result = tuple(result)
+                self.decision_swap = result[3]
+
+
 
         return result
 
@@ -454,6 +467,14 @@ class Bot(Player):
             max_money_list = money_dict[max(money_dict)]
 
             decision = random.choice(max_money_list)
+
+            return decision
+
+        if mode == "princess":
+            #Chọn ra hàng có phương sai nhỏ nhất
+            variance_array = np.var(self.memory_card_array, axis = 1)
+
+            decision = np.argmin(variance_array)
 
             return decision
 

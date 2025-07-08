@@ -31,7 +31,7 @@ class GameApp(App):
         self.off_game_screen = None
 
         ###Test time ratio
-        self.time_ratio = 0.2
+        self.time_ratio = 0.5
     def build(self):
 
         # Create screen manager
