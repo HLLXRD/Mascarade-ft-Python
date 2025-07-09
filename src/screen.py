@@ -244,7 +244,7 @@ class OptionsScreen(Screen):
         self.layout.add_widget(self.player_label)
 
         # Player count slider
-        self.player_slider = Slider(min=3, max=11, step=1, size_hint=(0.7, 0.02),
+        self.player_slider = Slider(min=3, max=8, step=1, size_hint=(0.7, 0.02),
                 background_horizontal='',  # Transparent background image
                 value_track=True,
                 value_track_color=(1, 0.2, 0.2, 1),  # No bg image
@@ -277,7 +277,7 @@ class OptionsScreen(Screen):
         # Speed count slider
 
         # Player count label
-        self.speed_label = Label(text=f'Animation time: x{self.speed}',
+        self.speed_label = Label(text=f'Speed: x{1/self.speed}',
                                   font_size=self.layout.size[1] * 36 / 23 // (12402 / 575),
                                   color=[191 / 255, 144 / 255, 0 / 255, 1],
                                   pos_hint={'center_x': 0.5, 'center_y': 0.5},
@@ -289,7 +289,7 @@ class OptionsScreen(Screen):
         self.speed_label.bind(size=self.update_button_font)
 
         self.layout.add_widget(self.speed_label)
-        self.speed_slider = Slider(min=0.1, max=1.5, step=0.1, value = 1, size_hint=(0.7, 0.02),
+        self.speed_slider = Slider(min=0.2, max=1.5, step=0.1, value = 1, size_hint=(0.7, 0.02),
                                     background_horizontal='',  # Transparent background image
                                     value_track=True,
                                     value_track_color=(1, 0.2, 0.2, 1),  # No bg image
@@ -382,11 +382,12 @@ class OptionsScreen(Screen):
 
     def on_speed_change(self, instance, value):
         self.speed = value
-        self.speed_label.text = f'Animation time: {round(self.speed, 1)}'
+        self.speed_label.text = f'Speed: x{round(1/self.speed, 1)}'
 
     def apply_settings(self, instance):
         self.app.player_num = self.player_num
         print(f"Applied settings: {self.player_num} players")
+        self.manager.current = "menu"
         # Here you can save the settings to your game
 
     def back_to_menu(self, instance):
