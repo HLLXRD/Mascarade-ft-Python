@@ -182,6 +182,7 @@ class OptionsScreen(Screen):
     def on_enter(self, *args):
         self.clear_widgets()
         self.player_num = 3  # Default number of players
+        self.speed = 1
         # Main layout
         self.layout = FloatLayout(size_hint = (1,1))
 
@@ -200,7 +201,7 @@ class OptionsScreen(Screen):
                            valign='center',
                            font_name=os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
                            color=[191 / 255, 144 / 255, 0 / 255, 1],
-                           pos_hint={'center_x': 0.5, "center_y": 573 / 689},  ## ADJUST LATER
+                           pos_hint={'center_x': 0.5, "center_y": 620 / 689},  ## ADJUST LATER
                            size_hint=(278 / 399, 126 / 689)
                            )
         print(self.title.pos_hint)
@@ -231,7 +232,7 @@ class OptionsScreen(Screen):
         self.player_label = Label(text=f'Number of Players: {self.player_num}',
                                   font_size=self.layout.size[1]* 36/23 // (12402 / 575),
                                   color = [191 / 255, 144 / 255, 0 / 255, 1],
-                                  pos_hint={'center_x': 0.5, 'center_y': 0.6},
+                                  pos_hint={'center_x': 0.5, 'center_y': 0.75},
                                   font_name = os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
                                   size_hint = (1, 0.1),
                                   valign='center',
@@ -254,7 +255,7 @@ class OptionsScreen(Screen):
                 # Light red fill color
                 value_track_width=4,
                 cursor_image= os.path.join(self.img_general_folder, "court.png"),
-                pos_hint = {'center_x': 0.5, 'center_y': 0.5},
+                pos_hint = {'center_x': 0.5, 'center_y': 0.65},
                 )
         with self.player_slider.canvas.before:
             # self.texture = Image(source = r"D:\Em yêu những môn học này\OOP\Mascarade\kivy\src\img_general\raw\widget_background_copy.png").texture
@@ -272,6 +273,51 @@ class OptionsScreen(Screen):
         self.player_slider.bind(pos=self._update_slider_bg,
                                 size=self._update_slider_bg)
         self.layout.add_widget(self.player_slider)
+
+        # Speed count slider
+
+        # Player count label
+        self.speed_label = Label(text=f'Animation time: x{self.speed}',
+                                  font_size=self.layout.size[1] * 36 / 23 // (12402 / 575),
+                                  color=[191 / 255, 144 / 255, 0 / 255, 1],
+                                  pos_hint={'center_x': 0.5, 'center_y': 0.5},
+                                  font_name=os.path.join(self.font_folder, "UnifrakturCook-Bold.ttf"),
+                                  size_hint=(1, 0.1),
+                                  valign='center',
+                                  halign='center')
+
+        self.speed_label.bind(size=self.update_button_font)
+
+        self.layout.add_widget(self.speed_label)
+        self.speed_slider = Slider(min=0.1, max=1.5, step=0.1, value = 1, size_hint=(0.7, 0.02),
+                                    background_horizontal='',  # Transparent background image
+                                    value_track=True,
+                                    value_track_color=(1, 0.2, 0.2, 1),  # No bg image
+                                    background_disabled_horizontal='',  # No disabled bg image
+                                    # background_vertical='',  # Same for vertical sliders
+                                    # background_disabled_vertical='',
+                                    background_width=0,
+                                    # Light red fill color
+                                    value_track_width=4,
+                                    cursor_image=os.path.join(self.img_general_folder, "court.png"),
+                                    pos_hint={'center_x': 0.5, 'center_y': 0.4},
+                                    )
+        with self.speed_slider.canvas.before:
+            # self.texture = Image(source = r"D:\Em yêu những môn học này\OOP\Mascarade\kivy\src\img_general\raw\widget_background_copy.png").texture
+
+            Color(0.5, 0, 0, 1)  # Dark red color (values 0–1)
+            self._sslider_bg = RoundedRectangle(pos=self.speed_slider.pos,
+                                               size=self.speed_slider.size,
+                                               radius=[(20, 20), (20, 20), (20, 20), (20, 20)],
+                                               segments=24,
+                                               # texture = self.texture
+                                               )
+
+        self.speed_slider.bind(value=self.on_speed_change)
+        # Update rectangle when slider moves or resizes
+        self.speed_slider.bind(pos=self._update_sslider_bg,
+                                size=self._update_sslider_bg)
+        self.layout.add_widget(self.speed_slider)
 
 
         # Back button
@@ -313,6 +359,10 @@ class OptionsScreen(Screen):
         self._slider_bg.pos = instance.pos
         self._slider_bg.size = instance.size
 
+    def _update_sslider_bg(self, instance, value):
+        self._sslider_bg.pos = instance.pos
+        self._sslider_bg.size = instance.size
+
     def update_title_font(self, instance, value):
         instance.font_size = self.layout.size[1]* 72/23//(12402/575)
         instance.text_size = instance.size
@@ -329,6 +379,10 @@ class OptionsScreen(Screen):
     def on_player_count_change(self, instance, value):
         self.player_num = int(value)
         self.player_label.text = f'Number of Players: {self.player_num}'
+
+    def on_speed_change(self, instance, value):
+        self.speed = value
+        self.speed_label.text = f'Animation time: {round(self.speed, 1)}'
 
     def apply_settings(self, instance):
         self.app.player_num = self.player_num
