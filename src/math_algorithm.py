@@ -46,22 +46,22 @@ def random_threshold(mean, std = 0.1):
     value = truncnorm.rvs(a, b, loc=mean, scale=std)
     return value
 
-def closest_turn_ID(list_IDs, ID_search):
-    lo, hi = 0, len(list_IDs) - 1
-    ans = None
-    while lo < hi:
-        mid = (lo+hi)//2
-        if list_IDs[mid] >= ID_search:
-            ans = mid
-            hi = mid -1
-        else:
-            lo = mid + 1
-    if ans != None:
-        return list_IDs[ans]
-    else:
-        return ans
-
-if __name__ == '__main__':
-    list = [0,4,5,6]
-    a = closest_turn_ID(list, 3)
-    print(a)
+# def closest_turn_ID(list_IDs, ID_search):
+#     lo, hi = 0, len(list_IDs) - 1
+#     ans = None
+#     while lo < hi:
+#         mid = (lo+hi)//2
+#         if list_IDs[mid] >= ID_search:
+#             ans = mid
+#             hi = mid -1
+#         else:
+#             lo = mid + 1
+#     if ans != None:
+#         return list_IDs[ans]
+#     else:
+#         return ans
+#
+# if __name__ == '__main__':
+#     list = [0,4,5,6]
+#     a = closest_turn_ID(list, 3)
+#     print(a)

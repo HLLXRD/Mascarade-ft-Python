@@ -471,10 +471,16 @@ class Bot(Player):
             return decision
 
         if mode == "princess":
-            #Chọn ra hàng có phương sai nhỏ nhất
-            variance_array = np.var(self.memory_card_array, axis = 1)
+            def find_min_variance_row_except(arr, a):
+                variances = np.var(arr, axis=1)
 
-            decision = np.argmin(variance_array)
+                # Đặt phương sai của hàng a thành inf để loại bỏ khỏi việc tìm min
+                variances_masked = np.where(np.arange(len(variances)) != a, variances, np.inf)
+
+                return np.argmin(variances_masked)
+
+
+            decision = find_min_variance_row_except(self.memory_card_array, self.ID)
 
             return decision
 

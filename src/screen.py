@@ -387,7 +387,7 @@ class OptionsScreen(Screen):
     def apply_settings(self, instance):
         self.app.player_num = self.player_num
         print(f"Applied settings: {self.player_num} players")
-        self.manager.current = "menu"
+        self.manager.current = 'menu'
         # Here you can save the settings to your game
 
     def back_to_menu(self, instance):

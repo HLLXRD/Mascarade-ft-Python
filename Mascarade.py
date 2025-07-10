@@ -105,6 +105,7 @@ class GameApp(App):
             # Get screen dimensions (use a reasonable default if system_size is unreliable)
             # try:
             #     screen_width, screen_height = Window.system_size
+
             #     # If system_size seems too small, use common screen size
             #     if screen_width < 1024 or screen_height < 768:
             #         screen_width, screen_height = 1920, 1080  # fallback
