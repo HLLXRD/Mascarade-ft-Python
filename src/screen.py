@@ -401,26 +401,43 @@ class OffNameScreen(Screen):
         print(Window.size)
         self.app = app
         self.name = 'off_name_typing'
+        self.img_general_folder = os.path.join(os.path.dirname(__file__), "img_general")
+        self.font_folder = os.path.join(os.path.dirname(__file__), "fonts")
 
     def on_enter(self, *args):
         self.clear_widgets()
         #Get the layout
+        self.layout = FloatLayout(size_hint=(1, 1), pos_hint={'center_x': 0.5, 'center_y': 0.5})
+        self.background = Image(source=os.path.join(self.img_general_folder, "castle_view.png"), keep_ratio = False, allow_stretch = True, size_hint = (1,1))
+
+
+        self.layout.add_widget(self.background)
+
+        self.letter = Image(source = os.path.join(self.img_general_folder, "Name_background.png"), keep_ratio = False, allow_stretch = True, size_hint = (2.5/5,1),
+                            pos_hint = {'center_x': 0.5, 'center_y': 2/5})
+        self.layout.add_widget(self.letter)
+
+
         name_layout = BoxLayout(size_hint=(1, 0.7))
 
         name_input = LimitedTextInput(
             hint_text="Enter your name",
             multiline=False,
             size_hint=(0.5, 0.5),
-            pos_hint={'center_x': 0.5, 'center_y': 0.5},
+            pos_hint={'center_x': 0.6, 'center_y': 0.1},
             background_color=(0, 0, 0, 0),  # Fully transparent
-            foreground_color=(1, 1, 1, 1),  # White text
+            foreground_color=(0, 0, 0, 1),  # White text
             cursor_color=(1, 1, 1, 1),  # White cursor
-            halign="center"
+            halign="center",
+            # valign="center",
+            font_name = os.path.join(self.font_folder, "ManufacturingConsent-Regular.ttf"),
+            font_size = 50
         )
         name_input.bind(on_text_validate=self.on_name_entered)
 
         name_layout.add_widget(name_input)
-        self.add_widget(name_layout)
+        self.layout.add_widget(name_layout)
+        self.add_widget(self.layout)
 
     def on_name_entered(self, instance):
         name = [instance.text]

@@ -10,7 +10,8 @@ These are steps to update the new character to the game:
  +Step 4.1: If it's the skill with no UI required, the activate doesn't need the *args, and we just need to code it in this char.py file
  +Step 4.2: Else, the activate affects the UI, or need for some decision, we will need to add more things to it, so the activate will require the *args, which will be the game_screen, and the character will need to do the check, update UI and also the end turn itself.
 -Step 5: Append the affected player after the skill activation to the affected dict
--Step 6: Code for the bot to think about it (add to useless/ high impacts when, and what to raise the decision). Now, we just code the block claim for the character with decision as random, since we dont know what decision will lead to what, so we just need to random select it'''
+-Step 6: Add appropriate image of the new character to the folder img_chars and img_cards in folder src.
+-Step 7: Code for the bot to think about it (add to useless/ high impacts when, and what to raise the decision). Now, we just code the block claim for the character with decision as random, since we dont know what decision will lead to what, so we just need to random select it'''
 class Character:
     def __init__(self, name, gender, ID):
         self.gender = gender
