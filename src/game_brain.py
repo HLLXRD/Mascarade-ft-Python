@@ -21,7 +21,7 @@ class Game:
         ###FIX THE BUG PLAYER TYPE THE AMOUNT OF HUMAN EXCEEDING THE PLAYER_NUM
         self.court = start_court
         self.game_mode = game_mode
-        # self.label_messages_dict = {'swap': ['Who do you want to swap with?']}
+
         ###Remember to add Inquisitor and the Cheater to somewhere
         self.total_high_impacts = [King, Widow, Queen, Courtesan, Patron]
         self.high_impacts = []
@@ -108,9 +108,7 @@ class Game:
                 #Add the player's ID to the dict of IDs with the name of the player as the key
                 self.player_names_dict[player_name] = i
 
-                # Add the message to the messages dictionary
-                if card.label_messages:
-                    self.label_messages_dict[card.name] = card.label_messages
+
             elif players_type[i] == "bot":
                 bot_name = bot_names[i]
                 card = self.selected_roles[i](i)

@@ -9,9 +9,8 @@ These are steps to update the new character to the game:
 -Step 4: Code the skill for it:
  +Step 4.1: If it's the skill with no UI required, the activate doesn't need the *args, and we just need to code it in this char.py file
  +Step 4.2: Else, the activate affects the UI, or need for some decision, we will need to add more things to it, so the activate will require the *args, which will be the game_screen, and the character will need to do the check, update UI and also the end turn itself.
--Step 5: Append the affected player after the skill activation to the affected dict
--Step 6: Add appropriate image of the new character to the folder img_chars and img_cards in folder src.
--Step 7: Code for the bot to think about it (add to useless/ high impacts when, and what to raise the decision). Now, we just code the block claim for the character with decision as random, since we dont know what decision will lead to what, so we just need to random select it'''
+-Step 5: Add appropriate image of the new character to the folder img_chars and img_cards in folder src.
+-Step 6: Code for the bot to think about it (add to useless/ high impacts when, and what to raise the decision). Now, we just code the block claim for the character with decision as random, since we dont know what decision will lead to what, so we just need to random select it'''
 class Character:
     def __init__(self, name, gender, ID):
         self.gender = gender
@@ -22,7 +21,7 @@ class Character:
 class King(Character):
     name = "king" # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
     gender = "male"
-    label_messages = None
+    
     list_success = [
     "The crown bows to none.",
     "Command is my birthright, not a suggestion.",
@@ -48,7 +47,7 @@ class King(Character):
 class Queen(Character):
     name = "queen"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
     gender = "female"
-    label_messages = None
+    
     list_success = [
     "The Queen never weeps — only reigns.",
     "A true queen needs no permission to rule.",
@@ -74,7 +73,7 @@ class Queen(Character):
 class Thief(Character):
     name = "thief"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
     gender = "male"
-    label_messages = None
+    
     list_success = [
     "If it's missing, I probably have it.",
     "One blink, and it's mine.",
@@ -110,7 +109,7 @@ class Thief(Character):
 class Judge(Character):
     name = "judge"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
     gender = "male"
-    label_messages = None
+    
     list_success = [
     "Justice is blind, but never wrong.",
     "Order must be maintained — by any means.",
@@ -140,7 +139,7 @@ class Judge(Character):
 class Widow(Character):
     name = "widow"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
     gender = "female"
-    label_messages = None
+    
     list_success = ["Widow success"]
     list_fail = ["Widow fail"]
     def __init__(self, ID):
@@ -159,7 +158,7 @@ class Widow(Character):
 class Bishop(Character):
     name = "bishop"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
     gender = "male"
-    label_messages = None ###We can add this for the tie situation
+     ###We can add this for the tie situation
     list_success = [
     "Heaven smiles upon the righteous.",
     "By divine right, I act — not ask.",
@@ -205,7 +204,7 @@ class Bishop(Character):
 class Courtesan(Character):
     name = "courtesan"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
     gender = "female"
-    label_messages = None
+    
     list_success = [
     "A whisper from me is worth a king’s decree.",
     "Darling, I always get what I want — eventually.",
@@ -259,7 +258,7 @@ class Courtesan(Character):
 class Cheat(Character):
     name = "cheat"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
     gender = "male"
-    label_messages = None
+    
     list_success = [
     "The rules? I wrote them.",
     "Winning is just a matter of perspective.",
@@ -286,7 +285,7 @@ class Cheat(Character):
 class Patron(Character):
     name = "patron"
     gender = "male"
-    label_messages = None
+    
     list_success = [
     "Gold is loyal when men are not.",
     "My purse speaks louder than any plea.",
@@ -322,7 +321,7 @@ class Patron(Character):
 class Beggar(Character):
     name = "beggar"
     gender = "female"
-    label_messages = None
+    
     list_success = [
     "A coin for the lowly? Bless thee!",
     "Even rags have their revenge.",
@@ -357,7 +356,7 @@ class Beggar(Character):
 class Witch(Character):
     name = "witch"
     gender = "female"
-    label_messages = None
+    
     list_success = [
     "The stars told me this would be mine.",
     "Spells weave truth where words falter.",
@@ -416,7 +415,7 @@ class Witch(Character):
 class Princess(Character):
     name = "princess"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
     gender = "female"
-    label_messages = None
+    
     list_success = [
     "Born to rule, not to beg.",
     "Grace alone wins the day.",
@@ -494,10 +493,49 @@ class Princess(Character):
 
         Clock.schedule_once(game_screen.complete_claim, (delete_time + 0.5) * game_screen.time_ratio)
 
+class Brigand (Character):
+    name = "brigand"
+    gender = "male"
+    list_success = [
+        "The purse was light, the blade swift.",
+        "Another road, another ransom well-earned.",
+        "Gold sings loudest when stolen in silence."
+        ]
+    list_fail = [
+        "A trap well laid... and I stepped right in.",
+        "Turns out, not all roads lead to riches.",
+        "Steel met steel—mine was duller."
+        ]
+
+    def __init__(self, ID):
+        super().__init__(Brigand.name, Brigand.gender, ID)
+        self.list_success = Brigand.list_success
+        self.list_fail = Brigand.list_fail
+
+    def activate(cls, player,game):
+        # print(f"{cls.name} triggered")
+        money_dict = {}
+        for i in game.players_dict:
+            if i != player.ID:
+                money_dict.setdefault(game.players_dict[i].money, []).append(i)
+
+        for i in money_dict:
+            chosen_player_ID = random.choice(money_dict[i])
+            chosen_player = game.players_dict[chosen_player_ID]
+
+            chosen_player.money -= 1
+            player.money += 1
+            game.affected_dict["affected"].add(chosen_player_ID)
+
+        game.affected_dict["affected"].add(player.ID)
+
+
+    
+
 # class Necromancer(Character):
 #     name = "Necromancer"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
 #     gender = "male"
-#     label_messages = None
+#     
 #     list_success = [
 #     "necro"
 # ]
@@ -522,7 +560,7 @@ class Princess(Character):
 # class Gangster(Character):
 #     name = "gangster"  # these attributes are belong to the class, not global or any alone instance (the instances share these class attributes, and still access as the King.name)
 #     gender = "male"
-#     label_messages = None ###We can add this for the tie situation
+#      ###We can add this for the tie situation
 #     list_success = [
 #     "Heaven smiles upon the righteous.",
 #     "By divine right, I act — not ask.",
