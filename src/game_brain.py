@@ -3,7 +3,7 @@ import numpy as np
 import math
 import copy
 
-from .char import Character, Judge, King, Queen, Thief, Bishop, Widow, Courtesan, Cheat, Patron, Beggar, Witch, Princess
+from .char import Character, Judge, King, Queen, Thief, Bishop, Widow, Courtesan, Cheat, Patron, Beggar, Witch, Princess, Brigand
 from .player_and_action import Player, Bot
 
 #__all__ = ['Character', 'Judge', 'Player', 'Game', 'King', 'Queen', 'Thief', 'Judge']
@@ -28,7 +28,7 @@ class Game:
         ###The special_activate includes Courtesan, Usurper, Inquisitor, Princess, Witch, consider add the Bishop to this list
         self.special_activate = [Courtesan, Witch, Princess]
         ###Male role
-        self.male = [Judge, King, Thief, Bishop, Cheat, Patron]
+        self.male = [Judge, King, Thief, Bishop, Cheat, Patron, Brigand]
         ###Female role
         self.female = [Queen, Widow, Courtesan, Beggar, Witch, Princess]
 

@@ -6,7 +6,7 @@ import copy
 import random
 import heapq
 
-from .char import Character, Judge, King, Queen, Thief, Bishop, Widow, Courtesan, Cheat, Patron, Beggar, Witch, Princess
+from .char import Character, Judge, King, Queen, Thief, Bishop, Widow, Courtesan, Cheat, Patron, Beggar, Witch, Princess, Brigand
 from .math_algorithm import sinkhorn_normalize, random_threshold
 
 
@@ -173,6 +173,21 @@ class Bot(Player):
                 high_impacts_self.append(Witch)
             if self.money == money_sort[game.player_num - 1].money:
                 useless_self.append(Witch)
+
+        # 9. If Brigand is in the game
+        if Brigand in game.reversed_chars_dict:
+            money_dict = {}
+
+            for i in game.players_dict:
+                money_dict.setdefault(game.players_dict[i].money, []). append(i)
+
+            if len(money_dict) <= 1:
+                useless_self.append(Brigand)
+
+            elif len(money_dict) >= 3:
+                high_impacts_self.append(Brigand)
+                high_impacts.append(Brigand)
+
 
 
 

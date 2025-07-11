@@ -512,6 +512,7 @@ class Brigand (Character):
         self.list_success = Brigand.list_success
         self.list_fail = Brigand.list_fail
 
+    @classmethod
     def activate(cls, player,game):
         # print(f"{cls.name} triggered")
         money_dict = {}
