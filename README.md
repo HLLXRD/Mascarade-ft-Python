@@ -31,4 +31,22 @@ Chuyển vào thư mục chính của dự án:
 ``` bash
 cd Mascarade-ft-Python
 ```
+Tiến hành cài đặt thư viện:
+```bash
+# Windows
+pip install "kivy[full]" kivy_examples
+pip install -r requirements.txt 
+
+# Linux/macOS
+
+sudo apt update
+sudo apt install python3-dev python3-pip libgl1-mesa-dev libgles2-mesa-dev \
+libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libmtdev-dev
+
+pip install "kivy[full]" kivy_examples
+pip install -r requirements.txt 
+
+```
+
+
 
