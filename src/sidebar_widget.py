@@ -14,9 +14,7 @@ from kivy.animation import Animation
 from kivy.core.window import Window
 
 import os
-import random
-import pyglet
-import copy
+
 
 from .player_and_action import char_selected, swap
 from .char import Witch, Princess
