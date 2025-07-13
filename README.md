@@ -50,7 +50,7 @@ pip install -r requirements.txt
 ``` bash
 python Mascarade.py
 ```
-*Lưu ý: Trong những lần khởi chạy đầu tiên hoặc sau khi vừa khởi động máy tính, game có thể sẽ load chậm/ không phản hồi, hãy dừng chương trình (Crl + C) và khởi chạy lại game từ 1 tới 2 lần, game sẽ hoạt động bình thường.*
+***Lưu ý**: Trong những lần khởi chạy đầu tiên hoặc sau khi vừa khởi động máy tính, game có thể sẽ load chậm/ không phản hồi, hãy dừng chương trình (Crl + C) và khởi chạy lại game từ 1 tới 2 lần, game sẽ hoạt động bình thường.*
 
 
 
