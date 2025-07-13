@@ -9,7 +9,6 @@ from kivy.clock import Clock
 from kivy.config import Config
 
 
-import ctypes
 import os
 
 
