@@ -1,0 +1,34 @@
+# Mascarade ft. Python
+
+Đồ án môn học Lập trình hướng đối tượng được lấy cảm hứng từ boardgame **Mascarade**, sử dụng thư viện **Kivy** và được xây dựng bằng 100% **Python**!
+
+---
+
+## Yêu cầu hệ thống
+
+- Python **3.11** hoặc mới hơn (được test trên 3.13)
+- pip **23.0** hoặc mới hơn
+- OS: Windows 10+, Ubuntu/Linux 
+
+---
+
+## Cài đặt môi trường
+
+### Bước 1: Tạo Virtual Environment (Tùy chọn nhưng khuyến nghị)
+
+```bash
+# Windows
+python -m venv PyMascarade
+PyMascarade\Scripts\activate
+
+# Linux/macOS
+python3 -m venv PyMascarade
+source PyMascarade/bin/activate
+```
+
+### Bước 2: Cài đặt thư viện
+Chuyển vào thư mục chính của dự án:
+``` bash
+cd Mascarade-ft-Python
+```
+
