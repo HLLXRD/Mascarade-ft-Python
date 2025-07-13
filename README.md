@@ -38,14 +38,17 @@ pip install "kivy[full]" kivy_examples
 pip install -r requirements.txt 
 
 # Linux/macOS
-
 sudo apt update
 sudo apt install python3-dev python3-pip libgl1-mesa-dev libgles2-mesa-dev \
 libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libmtdev-dev
 
 pip install "kivy[full]" kivy_examples
-pip install -r requirements.txt 
-
+pip install -r requirements.txt
+```
+### Bước 3: Khởi chạy game
+**Bạn đã sẵn sàng rồi!** Hãy chạy lệnh sau (vẫn ở thư mục chính của dự án) để khởi chạy game:
+``` bash
+python Mascarade.py
 ```
 
 
