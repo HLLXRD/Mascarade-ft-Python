@@ -352,18 +352,14 @@ class Bot(Player):
             result = (2, self.ID)
 
         if result[0] == 0:
-
-            if result[3] != None:
-                self.decision_swap = result[3]
-
-            elif result[3] == None:
+            if result[2] == None:
                 choices = [i for i in game_screen.app.game.players_dict if i != self.ID]
                 choice = random.choice(choices)
 
                 result = list(result)
-                result[3] = choice
+                result[2] = choice
                 result = tuple(result)
-                self.decision_swap = result[3]
+            self.decision_swap = result[3]
 
 
 

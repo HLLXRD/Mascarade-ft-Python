@@ -474,6 +474,9 @@ class OffGameScreen(Screen):
         self.sound = SoundLoader.load(os.path.join(self.sound_folder,r'Masquerade Waltz - Andreas Benhaut (mp3cut.net).mp3'))  # Can be .mp3, .ogg, .wav
 
     def on_pre_enter(self, **kwargs):
+        #Reset the turn
+        self.play_turn_index = 0
+        self.block_turn_index = 0
         # Initialize the sidebars
         self.sidebar = None
         self.player_sidebar = None
