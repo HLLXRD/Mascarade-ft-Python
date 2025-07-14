@@ -617,7 +617,7 @@ class SwapOrNotSidebar(FloatLayout):
         self.agent_ID = agent_ID
         self.patient_ID = patient_ID
 
-        self.img_action_folder = os.path.join(os.path.dirname(__file__), "img_actions\sidebar")
+        self.img_action_folder = os.path.join(os.path.dirname(__file__), "img_actions/sidebar")
         self.font_folder = os.path.join(os.path.dirname(__file__), "fonts")
 
         # # Transparent-ish background
@@ -817,7 +817,7 @@ class BlockSelectingSidebar(FloatLayout):
         self.label = f"Are you the real {self.game_screen.app.game.chars_dict[role_ID].name}?"
         self.player_ID = player_ID
 
-        self.img_action_folder = os.path.join(os.path.dirname(__file__), "img_actions\sidebar")
+        self.img_action_folder = os.path.join(os.path.dirname(__file__), "img_actions/sidebar")
         self.font_folder = os.path.join(os.path.dirname(__file__), "fonts")
 
         #This is to start the next block turn
